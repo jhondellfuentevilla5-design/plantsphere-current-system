@@ -1,0 +1,19 @@
+# Uploaded files (dili i-push ang actual uploads)
+uploads/request_letters/*.pdf
+uploads/request_letters/*.doc
+uploads/request_letters/*.docx
+
+# Environment / config files with credentials
+.env
+config.php
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
