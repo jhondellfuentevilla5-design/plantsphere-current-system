@@ -18,10 +18,7 @@
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        html, body {
-            font-family: 'Inter', sans-serif;
-            height: 100%;
-        }
+        html, body { font-family: 'Inter', sans-serif; height: 100%; }
 
         body {
             min-height: 100vh;
@@ -34,19 +31,17 @@
             overflow-x: hidden;
         }
 
-        /* Video background */
         .video-bg {
             position: fixed; inset: 0;
             width: 100%; height: 100%;
-            object-fit: cover; z-index: 0; opacity: 1;
+            object-fit: cover; z-index: 0;
         }
         .scene-overlay {
             position: fixed; inset: 0;
-            background: linear-gradient(135deg, rgba(13,43,10,0.42) 0%, rgba(26,61,22,0.35) 50%, rgba(45,90,39,0.28) 100%);
+            background: linear-gradient(135deg, rgba(13,43,10,0.55) 0%, rgba(26,61,22,0.5) 50%, rgba(45,90,39,0.42) 100%);
             z-index: 1;
         }
 
-        /* Orbs */
         .orbs { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
         .orb {
             position: absolute; border-radius: 50%;
@@ -78,14 +73,11 @@
             width: 100%;
             border-radius: 24px;
             overflow: hidden;
-            box-shadow:
-                0 0 0 1px rgba(255,255,255,0.1),
-                0 32px 80px rgba(0,0,0,0.55),
-                0 0 60px rgba(168,213,162,0.06);
+            box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08);
             transition: transform 0.1s ease;
         }
 
-        /* ── Left panel ── */
+        /* ── Left panel (dark green) ── */
         .auth-left {
             width: 38%;
             flex-shrink: 0;
@@ -118,17 +110,11 @@
             margin-bottom: 28px; position: relative; z-index: 1;
         }
         .brand-icon {
-            width: 48px; height: 48px;
-            border-radius: 50%;
-            overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
+            width: 48px; height: 48px; border-radius: 50%;
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
-        .brand-icon img {
-            width: 100%; height: 100%;
-            object-fit: cover; object-position: center;
-            transform: scale(1.3);
-        }
+        .brand-icon img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.3); }
         .brand-name { font-size: 1.2rem; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
         .brand-name span { color: var(--ga); }
 
@@ -145,10 +131,7 @@
             position: relative; z-index: 1;
         }
 
-        .feature-pills {
-            display: flex; flex-wrap: wrap; gap: 7px;
-            position: relative; z-index: 1;
-        }
+        .feature-pills { display: flex; flex-wrap: wrap; gap: 7px; position: relative; z-index: 1; }
         .feature-pill {
             display: inline-flex; align-items: center; gap: 5px;
             background: rgba(168,213,162,0.07);
@@ -158,10 +141,10 @@
         }
         .feature-pill i { color: var(--ga); font-size: 0.68rem; }
 
-        /* ── Right panel ── */
+        /* ── Right panel (WHITE) ── */
         .auth-right {
             width: 62%;
-            background: #1a3d16;
+            background: #ffffff;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -172,13 +155,13 @@
 
         .form-eyebrow {
             font-size: 0.63rem; font-weight: 700; letter-spacing: 2px;
-            text-transform: uppercase; color: var(--ga); margin-bottom: 3px;
+            text-transform: uppercase; color: var(--g3); margin-bottom: 3px;
         }
         .form-title {
-            font-size: 1.4rem; font-weight: 800; color: #fff;
+            font-size: 1.4rem; font-weight: 800; color: #1a2e1a;
             letter-spacing: -0.3px; margin-bottom: 3px;
         }
-        .form-subtitle { font-size: 0.75rem; color: rgba(255,255,255,0.45); margin-bottom: 18px; }
+        .form-subtitle { font-size: 0.75rem; color: #6c757d; margin-bottom: 18px; }
 
         /* Alerts */
         .ps-alert {
@@ -186,24 +169,15 @@
             padding: 9px 13px; border-radius: 9px;
             font-size: 0.76rem; margin-bottom: 14px;
         }
-        .ps-alert-danger {
-            background: rgba(220,53,69,0.14);
-            border: 1px solid rgba(220,53,69,0.28);
-            color: #ff8a8a;
-        }
-        .ps-alert-success {
-            background: rgba(40,167,69,0.14);
-            border: 1px solid rgba(40,167,69,0.28);
-            color: #a8d5a2;
-        }
+        .ps-alert-danger  { background: #fdf2f2; border: 1px solid #f5c6cb; color: #842029; }
+        .ps-alert-success { background: #f0faf0; border: 1px solid #b7dfb7; color: #155724; }
         .ps-alert i { margin-top: 1px; flex-shrink: 0; }
 
         /* Form */
         .form-group { margin-bottom: 13px; }
         .form-label {
             font-size: 0.72rem; font-weight: 600;
-            color: rgba(255,255,255,0.7);
-            margin-bottom: 5px; display: block;
+            color: #1a2e1a; margin-bottom: 5px; display: block;
         }
 
         .input-wrap { position: relative; }
@@ -211,63 +185,62 @@
         .input-wrap .i-icon {
             position: absolute; left: 10px; top: 50%;
             transform: translateY(-50%);
-            color: rgba(168,213,162,0.55); font-size: 0.82rem;
+            color: #b0bec5; font-size: 0.82rem;
             pointer-events: none; transition: color 0.2s;
         }
-        .input-wrap:focus-within .i-icon { color: var(--ga); }
+        .input-wrap:focus-within .i-icon { color: var(--g3); }
         .input-wrap .toggle-pw {
             position: absolute; right: 9px; top: 50%;
             transform: translateY(-50%);
-            background: none; border: none;
-            color: rgba(255,255,255,0.3);
+            background: none; border: none; color: #b0bec5;
             cursor: pointer; font-size: 0.82rem; padding: 2px;
             transition: color 0.2s;
         }
-        .input-wrap .toggle-pw:hover { color: var(--ga); }
+        .input-wrap .toggle-pw:hover { color: var(--g3); }
 
         .ps-input {
             width: 100%; padding: 9px 11px;
-            background: #0d2b0a;
-            border: 1px solid rgba(168,213,162,0.25);
+            background: #fff;
+            border: 1.5px solid #d8e8d5;
             border-radius: 9px;
             font-size: 0.82rem; font-family: 'Inter', sans-serif;
-            color: #fff; outline: none;
-            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+            color: #1a2e1a; outline: none;
+            transition: border-color 0.25s, box-shadow 0.25s;
         }
-        .ps-input::placeholder { color: rgba(255,255,255,0.28); }
+        .ps-input::placeholder { color: #b0bec5; }
         .ps-input:focus {
-            border-color: rgba(168,213,162,0.55);
-            background: #122b10;
-            box-shadow: 0 0 0 3px rgba(168,213,162,0.12),
-                        0 0 18px rgba(168,213,162,0.08);
+            border-color: var(--g3);
+            box-shadow: 0 0 0 3px rgba(45,90,39,0.1);
+        }
+        /* Fix browser autofill */
+        .ps-input:-webkit-autofill,
+        .ps-input:-webkit-autofill:hover,
+        .ps-input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 60px #fff inset !important;
+            -webkit-text-fill-color: #1a2e1a !important;
+            caret-color: #1a2e1a;
         }
 
         .btn-auth {
-            width: 100%; padding: 10px;
+            width: 100%; padding: 11px;
             background: linear-gradient(135deg, var(--g3) 0%, var(--g4) 100%);
             color: #fff; border: none; border-radius: 9px;
-            font-size: 0.85rem; font-weight: 700;
+            font-size: 0.875rem; font-weight: 700;
             font-family: 'Inter', sans-serif; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 7px;
             margin-top: 6px; position: relative; overflow: hidden;
             transition: transform 0.15s, box-shadow 0.25s;
-            box-shadow: 0 4px 20px rgba(45,90,39,0.4);
-        }
-        .btn-auth::before {
-            content: ''; position: absolute; inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
-            opacity: 0; transition: opacity 0.25s;
+            box-shadow: 0 4px 16px rgba(45,90,39,0.35);
         }
         .btn-auth:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 28px rgba(45,90,39,0.55), 0 0 18px rgba(168,213,162,0.18);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(45,90,39,0.45);
         }
-        .btn-auth:hover::before { opacity: 1; }
         .btn-auth:active { transform: translateY(0); }
 
         .ripple {
             position: absolute; border-radius: 50%;
-            background: rgba(255,255,255,0.22);
+            background: rgba(255,255,255,0.25);
             transform: scale(0);
             animation: rippleAnim 0.6s linear;
             pointer-events: none;
@@ -275,14 +248,11 @@
         @keyframes rippleAnim { to { transform: scale(4); opacity: 0; } }
 
         .auth-switch {
-            text-align: center; margin-top: 14px;
-            font-size: 0.73rem; color: rgba(255,255,255,0.4);
+            text-align: center; margin-top: 16px;
+            font-size: 0.8rem; color: #6c757d;
         }
-        .auth-switch a {
-            color: var(--ga); font-weight: 700; text-decoration: none;
-            transition: color 0.2s;
-        }
-        .auth-switch a:hover { color: #fff; }
+        .auth-switch a { color: var(--g3); font-weight: 700; text-decoration: none; }
+        .auth-switch a:hover { text-decoration: underline; }
 
         @media (max-width: 600px) {
             .auth-card { flex-direction: column; }
@@ -309,7 +279,7 @@
 <div class="auth-wrap">
     <div class="auth-card" id="authCard">
 
-        <!-- LEFT -->
+        <!-- LEFT — dark green -->
         <div class="auth-left">
             <div class="brand-mark">
                 <div class="brand-icon">
@@ -332,7 +302,7 @@
             </div>
         </div>
 
-        <!-- RIGHT -->
+        <!-- RIGHT — white -->
         <div class="auth-right">
             <div class="form-eyebrow">Welcome back</div>
             <h2 class="form-title">Sign in</h2>
@@ -397,7 +367,6 @@ function togglePassword(id, btn) {
     icon.className = inp.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
 }
 
-// Ripple
 document.getElementById('loginBtn').addEventListener('click', function(e) {
     const btn  = this;
     const rect = btn.getBoundingClientRect();
@@ -409,7 +378,6 @@ document.getElementById('loginBtn').addEventListener('click', function(e) {
     setTimeout(() => r.remove(), 700);
 });
 
-// Mouse parallax
 const card = document.getElementById('authCard');
 document.addEventListener('mousemove', e => {
     const cx = window.innerWidth  / 2;
@@ -422,51 +390,22 @@ document.addEventListener('mouseleave', () => {
     card.style.transform = 'perspective(1200px) rotateY(0deg) rotateX(0deg)';
 });
 
-// Particles
 (function() {
     const canvas = document.getElementById('particles');
     const ctx    = canvas.getContext('2d');
     let W, H, particles = [];
-
-    function resize() {
-        W = canvas.width  = window.innerWidth;
-        H = canvas.height = window.innerHeight;
-    }
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
     resize();
     window.addEventListener('resize', resize);
-
     function rand(a, b) { return Math.random() * (b - a) + a; }
-
     class Particle {
         constructor() { this.reset(); }
-        reset() {
-            this.x    = rand(0, W);
-            this.y    = rand(0, H);
-            this.r    = rand(0.8, 2.2);
-            this.vx   = rand(-0.25, 0.25);
-            this.vy   = rand(-0.55, -0.12);
-            this.life = rand(0.3, 1);
-            this.fade = rand(0.002, 0.005);
-        }
-        update() {
-            this.x += this.vx; this.y += this.vy; this.life -= this.fade;
-            if (this.life <= 0 || this.y < -10) this.reset();
-        }
-        draw() {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(168,213,162,${this.life * 0.55})`;
-            ctx.fill();
-        }
+        reset() { this.x = rand(0,W); this.y = rand(0,H); this.r = rand(0.8,2.2); this.vx = rand(-0.25,0.25); this.vy = rand(-0.55,-0.12); this.life = rand(0.3,1); this.fade = rand(0.002,0.005); }
+        update() { this.x += this.vx; this.y += this.vy; this.life -= this.fade; if (this.life <= 0 || this.y < -10) this.reset(); }
+        draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2); ctx.fillStyle = `rgba(168,213,162,${this.life*0.55})`; ctx.fill(); }
     }
-
     for (let i = 0; i < 90; i++) particles.push(new Particle());
-
-    (function loop() {
-        ctx.clearRect(0, 0, W, H);
-        particles.forEach(p => { p.update(); p.draw(); });
-        requestAnimationFrame(loop);
-    })();
+    (function loop() { ctx.clearRect(0,0,W,H); particles.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(loop); })();
 })();
 </script>
 </body>

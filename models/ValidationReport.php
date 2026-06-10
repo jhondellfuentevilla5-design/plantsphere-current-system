@@ -11,8 +11,8 @@ class ValidationReport {
             INSERT INTO validation_reports 
             (request_id, technologist_id, site_location, site_area, validation_date, schedule_date,
              soil_condition, accessibility, recommended_species, seed_packs_counted, available_seedlings,
-             findings, recommendation)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             findings, recommendation, site_photos, site_lat, site_lng)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $result = $stmt->execute([
             $data['request_id'],
@@ -27,7 +27,10 @@ class ValidationReport {
             $data['seed_packs_counted'],
             $data['available_seedlings'],
             $data['findings'],
-            $data['recommendation']
+            $data['recommendation'],
+            $data['site_photos'] ?? null,
+            $data['site_lat'] ?? null,
+            $data['site_lng'] ?? null,
         ]);
         return $result ? $this->conn->lastInsertId() : false;
     }

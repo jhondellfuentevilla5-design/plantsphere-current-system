@@ -51,9 +51,21 @@ CREATE TABLE IF NOT EXISTS service_requests (
     seedling_type VARCHAR(100) NOT NULL,
     quantity_requested INT NOT NULL,
     purpose TEXT NOT NULL,
-    status ENUM('pending','barangay_approved','formal_request_submitted','under_review','for_validation','validated','approved','rejected','routed','released') DEFAULT 'pending',
+    status ENUM('pending','barangay_approved','formal_request_submitted','under_review','for_validation','validated','slip_prepared','slip_validated','approved','finalized','rejected','routed','released') DEFAULT 'pending',
     referred_by INT NULL,
     remarks TEXT NULL,
+    request_letter VARCHAR(255) NULL,
+    proponent_name VARCHAR(150) NULL,
+    association_name VARCHAR(150) NULL,
+    recipient_name VARCHAR(150) NULL,
+    recipient_position VARCHAR(150) NULL,
+    activity_time VARCHAR(20) NULL,
+    quantity_released INT NULL,
+    released_at TIMESTAMP NULL,
+    released_by INT NULL,
+    stock_verified TINYINT(1) DEFAULT 0,
+    verified_material VARCHAR(100) NULL,
+    verified_quantity INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
@@ -76,6 +88,9 @@ CREATE TABLE IF NOT EXISTS validation_reports (
     available_seedlings INT NOT NULL,
     findings TEXT NOT NULL,
     recommendation TEXT NOT NULL,
+    site_photos TEXT NULL COMMENT 'JSON array of uploaded photo paths',
+    site_lat DECIMAL(10,7) NULL,
+    site_lng DECIMAL(10,7) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (request_id) REFERENCES service_requests(id),
     FOREIGN KEY (technologist_id) REFERENCES users(id)
@@ -95,6 +110,15 @@ CREATE TABLE IF NOT EXISTS request_slips (
     endorsement_office VARCHAR(150) NULL,
     approved_by INT NULL,
     approved_at TIMESTAMP NULL,
+    finalized_status ENUM('pending','finalized','rejected') DEFAULT 'pending',
+    dept_head_id INT NULL,
+    dept_head_remarks TEXT NULL,
+    finalized_at TIMESTAMP NULL,
+    endorsement_ref_number VARCHAR(100) NULL,
+    filing_date DATE NULL,
+    technologist_validated TINYINT(1) DEFAULT 0,
+    technologist_validated_at TIMESTAMP NULL,
+    technologist_validated_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (request_id) REFERENCES service_requests(id),
     FOREIGN KEY (validation_id) REFERENCES validation_reports(id),
@@ -156,4 +180,132 @@ CREATE TABLE IF NOT EXISTS formal_requests (
 );
 
 -- ALTER for existing databases
-ALTER TABLE service_requests MODIFY COLUMN status ENUM('pending','barangay_approved','formal_request_submitted','under_review','for_validation','validated','approved','rejected','routed','released') DEFAULT 'pending';
+ALTER TABLE service_requests MODIFY COLUMN status ENUM('pending','barangay_approved','formal_request_submitted','under_review','for_validation','validated','slip_prepared','slip_validated','approved','finalized','rejected','routed','released') DEFAULT 'pending';
+
+-- ─────────────────────────────────────────────────────────────
+-- NEW TABLES (added for full process coverage)
+-- ─────────────────────────────────────────────────────────────
+
+-- Barangay Approvals
+CREATE TABLE IF NOT EXISTS barangay_approvals (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    request_id INT NOT NULL,
+    captain_id INT NOT NULL,
+    status ENUM('pending','approved','rejected') DEFAULT 'pending',
+    remarks TEXT NULL,
+    approved_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (request_id) REFERENCES service_requests(id),
+    FOREIGN KEY (captain_id) REFERENCES users(id)
+);
+
+-- Seed Releases
+CREATE TABLE IF NOT EXISTS seed_releases (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    request_id INT NOT NULL,
+    slip_id INT NOT NULL,
+    released_by INT NOT NULL,
+    quantity_released INT NOT NULL,
+    release_date DATE NOT NULL,
+    recipient_name VARCHAR(150) NOT NULL,
+    remarks TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (request_id) REFERENCES service_requests(id),
+    FOREIGN KEY (slip_id) REFERENCES request_slips(id),
+    FOREIGN KEY (released_by) REFERENCES users(id)
+);
+
+-- Guidance Logs
+CREATE TABLE IF NOT EXISTS guidance_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    request_id INT NOT NULL,
+    release_id INT NOT NULL,
+    logged_by INT NOT NULL,
+    delivery_date DATE NOT NULL,
+    attendance_count INT NOT NULL DEFAULT 0,
+    completion_status ENUM('completed','partial','not_delivered') DEFAULT 'completed',
+    guidance_notes TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (request_id) REFERENCES service_requests(id),
+    FOREIGN KEY (release_id) REFERENCES seed_releases(id),
+    FOREIGN KEY (logged_by) REFERENCES users(id)
+);
+
+-- Survival Analytics (aggregate)
+CREATE TABLE IF NOT EXISTS survival_analytics (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    request_id INT NOT NULL,
+    monitored_by INT NOT NULL,
+    monitoring_date DATE NOT NULL,
+    seedlings_planted INT NOT NULL,
+    seedlings_survived INT NOT NULL,
+    observations TEXT NULL,
+    service_rating TINYINT NULL,
+    next_monitoring DATE NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (request_id) REFERENCES service_requests(id),
+    FOREIGN KEY (monitored_by) REFERENCES users(id)
+);
+
+-- Survival Participants (per-participant tracking for P16)
+CREATE TABLE IF NOT EXISTS survival_participants (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    survival_id INT NOT NULL,
+    participant_name VARCHAR(150) NOT NULL,
+    completion_status ENUM('completed','partial','not_completed') DEFAULT 'completed',
+    signature_data TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (survival_id) REFERENCES survival_analytics(id)
+);
+
+-- Task Assignment Log (P15 — stakeholder importance)
+CREATE TABLE IF NOT EXISTS task_assignment_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    guidance_id INT NOT NULL,
+    request_id INT NOT NULL,
+    assessed_by INT NOT NULL,
+    stakeholder_name VARCHAR(150) NOT NULL,
+    importance_score INT NOT NULL DEFAULT 0 COMMENT '1-10 score',
+    role_description TEXT NULL,
+    assigned_task TEXT NULL,
+    assessment_date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (guidance_id) REFERENCES guidance_logs(id),
+    FOREIGN KEY (request_id) REFERENCES service_requests(id),
+    FOREIGN KEY (assessed_by) REFERENCES users(id)
+);
+
+-- ─────────────────────────────────────────────────────────────
+-- ALTER STATEMENTS for existing databases (sync schema)
+-- ─────────────────────────────────────────────────────────────
+
+ALTER TABLE request_slips
+    ADD COLUMN IF NOT EXISTS finalized_status ENUM('pending','finalized','rejected') DEFAULT 'pending',
+    ADD COLUMN IF NOT EXISTS dept_head_id INT NULL,
+    ADD COLUMN IF NOT EXISTS dept_head_remarks TEXT NULL,
+    ADD COLUMN IF NOT EXISTS finalized_at TIMESTAMP NULL,
+    ADD COLUMN IF NOT EXISTS endorsement_ref_number VARCHAR(100) NULL,
+    ADD COLUMN IF NOT EXISTS filing_date DATE NULL,
+    ADD COLUMN IF NOT EXISTS technologist_validated TINYINT(1) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS technologist_validated_at TIMESTAMP NULL,
+    ADD COLUMN IF NOT EXISTS technologist_validated_by INT NULL;
+
+ALTER TABLE service_requests
+    ADD COLUMN IF NOT EXISTS request_letter VARCHAR(255) NULL,
+    ADD COLUMN IF NOT EXISTS proponent_name VARCHAR(150) NULL,
+    ADD COLUMN IF NOT EXISTS association_name VARCHAR(150) NULL,
+    ADD COLUMN IF NOT EXISTS recipient_name VARCHAR(150) NULL,
+    ADD COLUMN IF NOT EXISTS recipient_position VARCHAR(150) NULL,
+    ADD COLUMN IF NOT EXISTS activity_time VARCHAR(20) NULL,
+    ADD COLUMN IF NOT EXISTS quantity_released INT NULL,
+    ADD COLUMN IF NOT EXISTS released_at TIMESTAMP NULL,
+    ADD COLUMN IF NOT EXISTS released_by INT NULL,
+    ADD COLUMN IF NOT EXISTS stock_verified TINYINT(1) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS verified_material VARCHAR(100) NULL,
+    ADD COLUMN IF NOT EXISTS verified_quantity INT NULL;
+
+-- Add site_photos and coordinates to validation_reports
+ALTER TABLE validation_reports
+    ADD COLUMN IF NOT EXISTS site_photos TEXT NULL COMMENT 'JSON array of uploaded photo paths',
+    ADD COLUMN IF NOT EXISTS site_lat DECIMAL(10,7) NULL,
+    ADD COLUMN IF NOT EXISTS site_lng DECIMAL(10,7) NULL;

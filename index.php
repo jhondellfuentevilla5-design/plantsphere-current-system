@@ -233,6 +233,18 @@ switch ($action) {
         include 'views/technologist/site_validation.php';
         break;
 
+    case 'validation_reports':
+        requireRole(['agricultural_technologist', 'mao', 'department_head', 'admin']);
+        logAct($conn, 'view_validation_reports', $_SESSION['user']['role'], 'Viewed all validation reports.');
+        include 'views/technologist/validation_reports.php';
+        break;
+
+    case 'view_validation':
+        requireRole(['agricultural_technologist', 'mao', 'department_head', 'admin']);
+        logAct($conn, 'view_validation_report', $_SESSION['user']['role'], 'Viewed validation report for request ID: ' . intval($_GET['request_id'] ?? 0));
+        include 'views/technologist/view_validation.php';
+        break;
+
     case 'prepare_slip':
         requireRole('agricultural_technologist');
         logAct($conn, 'view_prepare_slip', 'technologist', 'Viewed prepare slip.');
@@ -294,6 +306,12 @@ switch ($action) {
         requireRole('agricultural_technologist');
         logAct($conn, 'view_guidance_log', 'technologist', 'Viewed guidance log.');
         include 'views/technologist/guidance_log.php';
+        break;
+
+    case 'stakeholder_importance':
+        requireRole('agricultural_technologist');
+        logAct($conn, 'view_stakeholder_importance', 'technologist', 'Viewed stakeholder importance page.');
+        include 'views/technologist/stakeholder_importance.php';
         break;
 
     case 'nursery_survival':

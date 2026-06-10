@@ -34,12 +34,14 @@ if ($role === 'community_organizer') {
     ];
 } elseif ($role === 'agricultural_technologist') {
     $navItems = [
-        ['action' => 'dashboard',            'label' => 'Dashboard',              'icon' => 'bi-speedometer2'],
-        ['action' => 'check_rsbsa',          'label' => 'RSBSA Registry',         'icon' => 'bi-person-check'],
-        ['action' => 'verify_materials',     'label' => 'Planting Materials',     'icon' => 'bi-box-seam'],
-        ['action' => 'site_validation',      'label' => 'Site Validation',        'icon' => 'bi-geo-alt'],
-        ['action' => 'prepare_slip',         'label' => 'Request Slips',          'icon' => 'bi-file-earmark-text'],
-        ['action' => 'nursery_guidance_log', 'label' => 'Guidance Log',           'icon' => 'bi-journal-check'],
+        ['action' => 'dashboard',             'label' => 'Dashboard',              'icon' => 'bi-speedometer2'],
+        ['action' => 'check_rsbsa',           'label' => 'RSBSA Registry',         'icon' => 'bi-person-check'],
+        ['action' => 'verify_materials',      'label' => 'Planting Materials',     'icon' => 'bi-box-seam'],
+        ['action' => 'site_validation',       'label' => 'Site Validation',        'icon' => 'bi-geo-alt'],
+        ['action' => 'validation_reports',    'label' => 'Validation Reports',     'icon' => 'bi-camera'],
+        ['action' => 'prepare_slip',          'label' => 'Request Slips',          'icon' => 'bi-file-earmark-text'],
+        ['action' => 'nursery_guidance_log',  'label' => 'Guidance Log',           'icon' => 'bi-journal-check'],
+        ['action' => 'stakeholder_importance','label' => 'Stakeholder Importance', 'icon' => 'bi-people'],
     ];
 } elseif ($role === 'mao') {
     $navItems = [

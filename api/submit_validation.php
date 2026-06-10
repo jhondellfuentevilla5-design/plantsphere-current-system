@@ -1,13 +1,11 @@
 <?php
 /**
  * API: submit_validation
- * Submits a site validation report for a service request.
+ * Submits a site validation report + optional site photos.
  * Moves the request status from 'for_validation' to 'validated'.
  *
- * Method: POST (application/json or form-data)
+ * Method: POST (multipart/form-data)
  * Auth:   Requires login (agricultural_technologist)
- * Body:   All validation report fields
- * Returns: { success: true, validation_id: int, request_number: string }
  */
 
 require_once __DIR__ . '/bootstrap.php';
@@ -19,14 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     apiError('Method not allowed. Use POST.', 405);
 }
 
-// Accept JSON or form-data
-$input = [];
-$contentType = $_SERVER['CONTENT_TYPE'] ?? '';
-if (str_contains($contentType, 'application/json')) {
+// Accept form-data (for file uploads) or JSON
+$input = $_POST;
+if (empty($input)) {
     $raw   = file_get_contents('php://input');
     $input = json_decode($raw, true) ?? [];
-} else {
-    $input = $_POST;
 }
 
 // ── Validate required fields ──────────────────────────────
@@ -56,6 +51,52 @@ if ($request['status'] !== 'for_validation') {
     apiError('Request is not in for_validation status. Current status: ' . $request['status']);
 }
 
+// ── Handle site photo uploads ─────────────────────────────
+$savedPhotos  = [];
+$photoErrors  = [];
+$uploadDir    = __DIR__ . '/../uploads/site_photos/';
+
+if (!empty($_FILES['site_photos']['name'][0])) {
+    $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    $maxSize      = 5 * 1024 * 1024; // 5 MB
+    $maxPhotos    = 5;
+    $files        = $_FILES['site_photos'];
+    $count        = count($files['name']);
+
+    if ($count > $maxPhotos) {
+        apiError("Maximum $maxPhotos photos allowed.");
+    }
+
+    for ($i = 0; $i < $count; $i++) {
+        if ($files['error'][$i] !== UPLOAD_ERR_OK) continue;
+        if ($files['size'][$i] > $maxSize) {
+            $photoErrors[] = $files['name'][$i] . ' exceeds 5 MB limit.';
+            continue;
+        }
+
+        // Verify MIME via finfo
+        $finfo    = new finfo(FILEINFO_MIME_TYPE);
+        $realMime = $finfo->file($files['tmp_name'][$i]);
+        if (!in_array($realMime, $allowedMimes)) {
+            $photoErrors[] = $files['name'][$i] . ' is not a valid image.';
+            continue;
+        }
+
+        // Generate safe filename
+        $ext      = pathinfo($files['name'][$i], PATHINFO_EXTENSION);
+        $safeName = time() . '_' . $requestId . '_' . $i . '_site.' . strtolower($ext);
+        $dest     = $uploadDir . $safeName;
+
+        if (move_uploaded_file($files['tmp_name'][$i], $dest)) {
+            $savedPhotos[] = 'uploads/site_photos/' . $safeName;
+        } else {
+            $photoErrors[] = 'Failed to save ' . $files['name'][$i];
+        }
+    }
+}
+
+$photosJson = !empty($savedPhotos) ? json_encode($savedPhotos) : null;
+
 // ── Create validation report ──────────────────────────────
 $vrModel = new ValidationReport($conn);
 $data = [
@@ -72,6 +113,9 @@ $data = [
     'available_seedlings' => intval($input['available_seedlings']),
     'findings'            => trim($input['findings']),
     'recommendation'      => trim($input['recommendation']),
+    'site_photos'         => $photosJson,
+    'site_lat'            => !empty($input['site_lat']) ? floatval($input['site_lat']) : null,
+    'site_lng'            => !empty($input['site_lng']) ? floatval($input['site_lng']) : null,
 ];
 
 $vrId = $vrModel->create($data);
@@ -108,6 +152,8 @@ $secLog->logActivity(
 apiSuccess([
     'validation_id'  => (int)$vrId,
     'request_number' => $request['request_number'],
+    'photos_saved'   => count($savedPhotos),
+    'photo_errors'   => $photoErrors,
     'message'        => 'Validation report submitted. Request moved to validated status.',
 ]);
 ?>

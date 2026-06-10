@@ -15,12 +15,28 @@ if (!$request) {
     exit;
 }
 
+// Compute matched material before POST handler so it's available for stock verification (P4)
+$materials = $pmModel->getAll();
+$matchedMaterial = null;
+foreach ($materials as $m) {
+    if (stripos($m['material_name'], $request['seedling_type']) !== false ||
+        stripos($request['seedling_type'], $m['material_name']) !== false) {
+        $matchedMaterial = $m;
+        break;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action_taken = $_POST['action_taken'];
     $remarks = trim($_POST['remarks'] ?? '');
 
     if ($action_taken === 'refer') {
         $srModel->updateStatus($id, 'under_review', $remarks, $_SESSION['user']['id']);
+        // Save stock verification (P4)
+        if ($matchedMaterial) {
+            $conn->prepare("UPDATE service_requests SET stock_verified = 1, verified_material = ?, verified_quantity = ? WHERE id = ?")
+                 ->execute([$matchedMaterial['material_name'], $matchedMaterial['quantity'], $id]);
+        }
         // Notify agricultural technologists
         $techs = (new User($conn))->getAllByRole('agricultural_technologist');
         foreach ($techs as $t) {
@@ -41,15 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$materials = $pmModel->getAll();
-$matchedMaterial = null;
-foreach ($materials as $m) {
-    if (stripos($m['material_name'], $request['seedling_type']) !== false ||
-        stripos($request['seedling_type'], $m['material_name']) !== false) {
-        $matchedMaterial = $m;
-        break;
-    }
-}
 ?>
 
 <div class="ps-page-header">

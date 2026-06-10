@@ -100,7 +100,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!-- Validation Summary -->
 <div class="ps-card mb-4">
-    <h6 class="fw-bold text-ps-green mb-3">Site Validation Summary</h6>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold text-ps-green mb-0">Site Validation Summary</h6>
+        <a href="index.php?action=view_validation&request_id=<?= $slip['request_id'] ?>"
+           target="_blank" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-camera me-1"></i>View Site Photos
+        </a>
+    </div>
     <div class="row g-3">
         <div class="col-md-6">
             <div class="small text-muted">Validated Site</div>

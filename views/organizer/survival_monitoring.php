@@ -25,7 +25,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_id'])) {
             intval($_POST['service_rating']) ?: null,
             $_POST['next_monitoring'] ?: null,
         ]);
-        $success = $result ? "Survival monitoring record saved." : "Failed to save record.";
+        if ($result) {
+            // Save participants (P16)
+            $participants = $_POST['participant_name'] ?? [];
+            $pStatuses    = $_POST['participant_status'] ?? [];
+            $signatures   = $_POST['participant_signature'] ?? [];
+            $survivalId   = $conn->lastInsertId();
+            foreach ($participants as $pi => $pname) {
+                if (empty(trim($pname))) continue;
+                $conn->prepare("INSERT INTO survival_participants (survival_id, participant_name, completion_status, signature_data) VALUES (?,?,?,?)")
+                     ->execute([$survivalId, trim($pname), $pStatuses[$pi] ?? 'completed', trim($signatures[$pi] ?? '')]);
+            }
+            $success = "Survival monitoring record saved.";
+        } else {
+            $success = "Failed to save record.";
+        }
     }
 }
 
@@ -147,6 +161,32 @@ $records = $stmt2->fetchAll();
                            min="<?= date('Y-m-d', strtotime('+1 day')) ?>">
                 </div>
 
+                <!-- P16 — Participant Tracking -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Participants (Participant Full Name &amp; Completion Status)</label>
+                    <div id="participantRows">
+                        <div class="participant-row row g-2 mb-2">
+                            <div class="col-6">
+                                <input type="text" name="participant_name[]" class="form-control form-control-sm" placeholder="Participant Full Name">
+                            </div>
+                            <div class="col-4">
+                                <select name="participant_status[]" class="form-select form-select-sm">
+                                    <option value="completed">Completed</option>
+                                    <option value="partial">Partial</option>
+                                    <option value="not_completed">Not Completed</option>
+                                </select>
+                            </div>
+                            <div class="col-2">
+                                <input type="text" name="participant_signature[]" class="form-control form-control-sm" placeholder="Signature">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addParticipant()">
+                        <i class="bi bi-plus-circle me-1"></i>Add Participant
+                    </button>
+                    <div class="form-text">Record each participant's name and completion status.</div>
+                </div>
+
                 <button type="submit" class="btn btn-ps-primary w-100">
                     <i class="bi bi-save me-1"></i>Save Monitoring Record
                 </button>
@@ -223,6 +263,23 @@ function setRating(val) {
     stars.forEach((s, i) => {
         s.style.color = i < val ? '#f0a500' : '#dee2e6';
     });
+}
+
+function addParticipant() {
+    const container = document.getElementById('participantRows');
+    const div = document.createElement('div');
+    div.className = 'participant-row row g-2 mb-2';
+    div.innerHTML = `
+        <div class="col-6"><input type="text" name="participant_name[]" class="form-control form-control-sm" placeholder="Participant Full Name"></div>
+        <div class="col-4"><select name="participant_status[]" class="form-select form-select-sm">
+            <option value="completed">Completed</option>
+            <option value="partial">Partial</option>
+            <option value="not_completed">Not Completed</option>
+        </select></div>
+        <div class="col-2">
+            <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="this.closest('.participant-row').remove()"><i class="bi bi-x"></i></button>
+        </div>`;
+    container.appendChild(div);
 }
 </script>
 

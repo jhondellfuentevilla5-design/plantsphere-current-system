@@ -169,7 +169,7 @@
         /* ── Right panel ── */
         .auth-right {
             width: 64%;
-            background: #1a3d16;
+            background: #ffffff;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -177,27 +177,30 @@
             position: relative;
             overflow: hidden;
         }
+        .auth-right::before {
+            content: none;
+        }
 
         .form-eyebrow {
             font-size: 0.63rem; font-weight: 700; letter-spacing: 2px;
-            text-transform: uppercase; color: var(--ga); margin-bottom: 3px;
+            text-transform: uppercase; color: var(--g3); margin-bottom: 3px;
         }
         .form-title {
-            font-size: 1.25rem; font-weight: 800; color: #fff;
+            font-size: 1.25rem; font-weight: 800; color: #1a2e1a;
             letter-spacing: -0.3px; margin-bottom: 2px;
         }
-        .form-subtitle { font-size: 0.73rem; color: rgba(255,255,255,0.45); margin-bottom: 14px; }
+        .form-subtitle { font-size: 0.73rem; color: #6c757d; margin-bottom: 14px; }
 
         /* Section label */
         .section-label {
             font-size: 0.6rem; font-weight: 700; letter-spacing: 1.2px;
-            text-transform: uppercase; color: rgba(168,213,162,0.7);
+            text-transform: uppercase; color: var(--g3);
             margin: 12px 0 8px;
             display: flex; align-items: center; gap: 7px;
         }
         .section-label::after {
             content: ''; flex: 1; height: 1px;
-            background: rgba(255,255,255,0.1);
+            background: #d8e8d5;
         }
 
         /* Alert */
@@ -206,11 +209,7 @@
             padding: 9px 13px; border-radius: 9px;
             font-size: 0.76rem; margin-bottom: 12px;
         }
-        .ps-alert-danger {
-            background: rgba(220,53,69,0.14);
-            border: 1px solid rgba(220,53,69,0.28);
-            color: #ff8a8a;
-        }
+        .ps-alert-danger { background: #fdf2f2; border: 1px solid #f5c6cb; color: #842029; }
         .ps-alert i { margin-top: 1px; flex-shrink: 0; }
 
         /* Form */
@@ -219,8 +218,7 @@
 
         .form-label {
             font-size: 0.7rem; font-weight: 600;
-            color: rgba(255,255,255,0.7);
-            margin-bottom: 4px; display: block;
+            color: #1a2e1a; margin-bottom: 4px; display: block;
         }
 
         .input-wrap { position: relative; }
@@ -229,44 +227,48 @@
         .input-wrap .i-icon {
             position: absolute; left: 10px; top: 50%;
             transform: translateY(-50%);
-            color: rgba(168,213,162,0.55); font-size: 0.8rem;
+            color: #b0bec5; font-size: 0.8rem;
             pointer-events: none; transition: color 0.2s;
         }
-        .input-wrap:focus-within .i-icon { color: var(--ga); }
+        .input-wrap:focus-within .i-icon { color: var(--g3); }
         .input-wrap .toggle-pw {
             position: absolute; right: 9px; top: 50%;
             transform: translateY(-50%);
-            background: none; border: none;
-            color: rgba(255,255,255,0.3);
+            background: none; border: none; color: #b0bec5;
             cursor: pointer; font-size: 0.8rem; padding: 2px;
             transition: color 0.2s;
         }
-        .input-wrap .toggle-pw:hover { color: var(--ga); }
+        .input-wrap .toggle-pw:hover { color: var(--g3); }
         .input-wrap.select-wrap::after {
             content: '\F282'; font-family: 'bootstrap-icons';
             position: absolute; right: 10px; top: 50%;
             transform: translateY(-50%);
-            color: rgba(255,255,255,0.3); pointer-events: none; font-size: 0.72rem;
+            color: #b0bec5; pointer-events: none; font-size: 0.72rem;
         }
 
         .ps-input, .ps-select {
             width: 100%; padding: 8px 11px;
-            background: #0d2b0a;
-            border: 1px solid rgba(168,213,162,0.25);
+            background: #fff;
+            border: 1.5px solid #d8e8d5;
             border-radius: 9px;
             font-size: 0.78rem; font-family: 'Inter', sans-serif;
-            color: #fff; outline: none; appearance: none;
-            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+            color: #1a2e1a; outline: none; appearance: none;
+            transition: border-color 0.25s, box-shadow 0.25s;
         }
-        .ps-input::placeholder { color: rgba(255,255,255,0.28); }
+        .ps-input::placeholder { color: #b0bec5; }
         .ps-input:focus, .ps-select:focus {
-            border-color: rgba(168,213,162,0.55);
-            background: #122b10;
-            box-shadow: 0 0 0 3px rgba(168,213,162,0.12),
-                        0 0 18px rgba(168,213,162,0.08);
+            border-color: var(--g3);
+            box-shadow: 0 0 0 3px rgba(45,90,39,0.1);
         }
-        /* Style select options (limited browser support) */
-        .ps-select option { background: #1a3d16; color: #fff; }
+        /* Fix browser autofill */
+        .ps-input:-webkit-autofill,
+        .ps-input:-webkit-autofill:hover,
+        .ps-input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 60px #fff inset !important;
+            -webkit-text-fill-color: #1a2e1a !important;
+            caret-color: #1a2e1a;
+        }
+        .ps-select option { background: #fff; color: #1a2e1a; }
 
         /* Password strength */
         .pw-strength { margin-top: 4px; }
@@ -276,9 +278,9 @@
             overflow: hidden; margin-bottom: 3px;
         }
         .pw-fill { height: 100%; border-radius: 3px; width: 0%; transition: width 0.3s, background 0.3s; }
-        .pw-label { font-size: 0.63rem; color: rgba(255,255,255,0.35); }
+        .pw-label { font-size: 0.63rem; color: #6c757d; }
 
-        .form-hint { font-size: 0.62rem; color: rgba(255,255,255,0.3); margin-top: 2px; }
+        .form-hint { font-size: 0.62rem; color: #6c757d; margin-top: 2px; }
 
         /* Button */
         .btn-auth {
@@ -315,13 +317,12 @@
 
         .auth-switch {
             text-align: center; margin-top: 12px;
-            font-size: 0.72rem; color: rgba(255,255,255,0.4);
+            font-size: 0.72rem; color: #6c757d;
         }
         .auth-switch a {
-            color: var(--ga); font-weight: 700; text-decoration: none;
-            transition: color 0.2s;
+            color: var(--g3); font-weight: 700; text-decoration: none;
         }
-        .auth-switch a:hover { color: #fff; }
+        .auth-switch a:hover { text-decoration: underline; }
 
         @media (max-width: 620px) {
             .auth-card { flex-direction: column; }

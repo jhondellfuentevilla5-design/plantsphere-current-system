@@ -54,8 +54,10 @@ $actionable = array_merge(array_values($forReview), array_values($forValidation)
                 <a href="index.php?action=check_rsbsa" class="btn btn-ps-primary">Check RSBSA</a>
                 <a href="index.php?action=verify_materials" class="btn btn-outline-secondary">Verify Materials</a>
                 <a href="index.php?action=site_validation" class="btn btn-outline-secondary">Site Validation</a>
+                <a href="index.php?action=validation_reports" class="btn btn-outline-secondary">Validation Reports</a>
                 <a href="index.php?action=prepare_slip" class="btn btn-outline-secondary">Prepare Slip</a>
                 <a href="index.php?action=nursery_guidance_log" class="btn btn-outline-secondary">Guidance Log</a>
+                <a href="index.php?action=stakeholder_importance" class="btn btn-outline-secondary">Stakeholder Importance</a>
             </div>
         </div>
     </div>
