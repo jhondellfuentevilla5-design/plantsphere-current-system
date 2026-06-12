@@ -4,8 +4,13 @@ class SeedRelease {
     public function __construct($conn) { $this->conn = $conn; }
 
     public function create($data) {
-        $stmt = $this->conn->prepare("INSERT INTO seed_releases (request_id, slip_id, released_by, quantity_released, release_date, recipient_name, remarks) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $result = $stmt->execute([$data['request_id'], $data['slip_id'], $data['released_by'], $data['quantity_released'], $data['release_date'], $data['recipient_name'], $data['remarks'] ?? null]);
+        $stmt = $this->conn->prepare("INSERT INTO seed_releases (request_id, slip_id, released_by, quantity_released, release_date, recipient_name, remarks, release_photos) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $result = $stmt->execute([
+            $data['request_id'], $data['slip_id'], $data['released_by'],
+            $data['quantity_released'], $data['release_date'],
+            $data['recipient_name'], $data['remarks'] ?? null,
+            $data['release_photos'] ?? null,
+        ]);
         return $result ? $this->conn->lastInsertId() : false;
     }
 

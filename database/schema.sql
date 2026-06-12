@@ -236,6 +236,7 @@ CREATE TABLE IF NOT EXISTS seed_releases (
     release_date DATE NOT NULL,
     recipient_name VARCHAR(150) NOT NULL,
     remarks TEXT NULL,
+    release_photos TEXT NULL COMMENT 'JSON array of photo paths',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (request_id) REFERENCES service_requests(id),
     FOREIGN KEY (slip_id) REFERENCES request_slips(id),

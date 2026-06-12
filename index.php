@@ -257,6 +257,12 @@ switch ($action) {
         include 'views/mao/review_slips.php';
         break;
 
+    case 'view_release_photos':
+        requireRole('community_organizer');
+        logAct($conn, 'view_release_photos', 'organizer', 'Viewed release photos for request ID: ' . intval($_GET['request_id'] ?? 0));
+        include 'views/organizer/view_release_photos.php';
+        break;
+
     case 'view_endorsement':
         requireRole(['mao', 'department_head', 'admin']);
         logAct($conn, 'view_endorsement', $_SESSION['user']['role'], 'Viewed endorsement letter for slip ID: ' . intval($_GET['slip_id'] ?? 0));

@@ -22,6 +22,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slip_id'])) {
     $slip = $stmt->fetch();
 
     if ($slip && $qtyReleased > 0) {
+
+        // ── Handle release photos ─────────────────────────
+        $savedPhotos = [];
+        $uploadDir   = __DIR__ . '/../../uploads/release_photos/';
+        if (!empty($_FILES['release_photos']['name'][0])) {
+            $allowedMimes = ['image/jpeg','image/png','image/webp'];
+            $maxSize      = 5 * 1024 * 1024;
+            $files        = $_FILES['release_photos'];
+            $count        = min(count($files['name']), 5);
+            for ($i = 0; $i < $count; $i++) {
+                if ($files['error'][$i] !== UPLOAD_ERR_OK) continue;
+                if ($files['size'][$i] > $maxSize) continue;
+                $finfo    = new finfo(FILEINFO_MIME_TYPE);
+                $realMime = $finfo->file($files['tmp_name'][$i]);
+                if (!in_array($realMime, $allowedMimes)) continue;
+                $ext      = pathinfo($files['name'][$i], PATHINFO_EXTENSION);
+                $safeName = time() . '_' . $requestId . '_' . $i . '_release.' . strtolower($ext);
+                if (move_uploaded_file($files['tmp_name'][$i], $uploadDir . $safeName)) {
+                    $savedPhotos[] = 'uploads/release_photos/' . $safeName;
+                }
+            }
+        }
+        $photosJson = !empty($savedPhotos) ? json_encode($savedPhotos) : null;
+
         $releaseId = $releaseModel->create([
             'request_id'       => $requestId,
             'slip_id'          => $slipId,
@@ -30,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slip_id'])) {
             'release_date'     => $releaseDate,
             'recipient_name'   => $recipientName,
             'remarks'          => $remarks,
+            'release_photos'   => $photosJson,
         ]);
 
         if ($releaseId) {
@@ -48,10 +73,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slip_id'])) {
             $conn->prepare("UPDATE service_requests SET quantity_released = ?, released_at = NOW(), released_by = ? WHERE id = ?")->execute([$qtyReleased, $_SESSION['user']['id'], $requestId]);
 
             // Notify organizer
-            $notifModel->create($slip['user_id'], 'Seed Packs Released',
-                'Your request ' . $slip['request_number'] . ' — ' . $qtyReleased . ' seed packs have been released to ' . $recipientName . '.');
+            $photoNote = !empty($savedPhotos) ? ' Photos of the seedlings have been attached.' : '';
+            $notifModel->create($slip['user_id'], 'Seed Packs Ready for Release',
+                'Your request ' . $slip['request_number'] . ' — ' . $qtyReleased . ' seed packs are ready and have been released to ' . $recipientName . '.' . $photoNote);
 
-            $success = "$qtyReleased seed packs released successfully to $recipientName.";
+            $success = "$qtyReleased seed packs released to $recipientName." . (!empty($savedPhotos) ? ' ' . count($savedPhotos) . ' photo(s) uploaded.' : '');
         } else {
             $error = "Failed to record release.";
         }
@@ -123,7 +149,7 @@ $focusSlip     = $focusId ? array_values(array_filter($pendingSlips, fn($s) => $
             <h6 class="fw-bold text-ps-green mb-3">
                 <i class="bi bi-box-seam me-2"></i>Record Release
             </h6>
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="slip_id" value="<?= $focusSlip['id'] ?>">
                 <input type="hidden" name="request_id" value="<?= $focusSlip['request_id'] ?>">
 
@@ -146,11 +172,31 @@ $focusSlip     = $focusId ? array_values(array_filter($pendingSlips, fn($s) => $
                     <input type="text" name="recipient_name" class="form-control"
                            placeholder="Name of person receiving the seed packs" required>
                 </div>
-                <div class="mb-4">
+                <div class="mb-3">
                     <label class="form-label">Remarks</label>
                     <textarea name="remarks" class="form-control" rows="2"
                         placeholder="Additional notes about the release..."></textarea>
                 </div>
+
+                <!-- ── Seedling Photos ── -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">
+                        <i class="bi bi-camera me-1 text-ps-green"></i>
+                        Seedling Photos
+                        <span class="text-muted fw-normal small ms-1">(optional, max 5 — so organizer can see the seedlings)</span>
+                    </label>
+                    <div class="release-photo-drop" id="releaseDropzone"
+                         onclick="document.getElementById('releasePhotoInput').click()">
+                        <i class="bi bi-images" style="font-size:1.8rem; color:var(--ps-green-light); display:block; margin-bottom:6px;"></i>
+                        <div class="small fw-semibold" id="releaseDropText">Click to add photos of the seedlings</div>
+                        <div class="x-small text-muted">JPG, PNG, WEBP — max 5 MB each</div>
+                    </div>
+                    <input type="file" name="release_photos[]" id="releasePhotoInput"
+                           accept="image/jpeg,image/png,image/webp" multiple class="d-none"
+                           onchange="handleReleasePhotos(this)">
+                    <div id="releasePhotoGrid" class="release-photo-grid mt-2"></div>
+                </div>
+
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-ps-primary">
                         <i class="bi bi-box-arrow-up me-1"></i>Confirm Release
@@ -169,5 +215,95 @@ $focusSlip     = $focusId ? array_values(array_filter($pendingSlips, fn($s) => $
         <?php endif; ?>
     </div>
 </div>
+
+<style>
+.release-photo-drop {
+    border: 2px dashed #c8ddc5;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: #fafcfa;
+    transition: border-color 0.2s, background 0.2s;
+}
+.release-photo-drop:hover { border-color: var(--ps-green); background: var(--ps-green-pale); }
+.release-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+}
+.release-photo-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    border: 2px solid #d8e8d5;
+}
+.release-photo-item img { width:100%; height:100%; object-fit:cover; display:block; }
+.release-photo-remove {
+    position: absolute; top:3px; right:3px;
+    background: rgba(0,0,0,0.55); color:#fff;
+    border:none; border-radius:50%;
+    width:20px; height:20px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.6rem; cursor:pointer;
+}
+.release-photo-remove:hover { background:#dc3545; }
+</style>
+<script>
+let releaseFiles = [];
+function handleReleasePhotos(input) {
+    const allowed = ['image/jpeg','image/png','image/webp'];
+    Array.from(input.files).forEach(f => {
+        if (!allowed.includes(f.type) || f.size > 5*1024*1024 || releaseFiles.length >= 5) return;
+        releaseFiles.push(f);
+    });
+    input.value = '';
+    rebuildReleaseInput();
+    renderReleasePhotos();
+}
+function rebuildReleaseInput() {
+    const dt = new DataTransfer();
+    releaseFiles.forEach(f => dt.items.add(f));
+    document.getElementById('releasePhotoInput').files = dt.files;
+}
+function removeReleasePhoto(i) {
+    releaseFiles.splice(i, 1);
+    rebuildReleaseInput();
+    renderReleasePhotos();
+}
+function renderReleasePhotos() {
+    const grid = document.getElementById('releasePhotoGrid');
+    const txt  = document.getElementById('releaseDropText');
+    grid.innerHTML = '';
+    releaseFiles.forEach((f, i) => {
+        const r = new FileReader();
+        r.onload = e => {
+            const div = document.createElement('div');
+            div.className = 'release-photo-item';
+            div.innerHTML = `<img src="${e.target.result}" alt="Photo ${i+1}">
+                <button type="button" class="release-photo-remove" onclick="removeReleasePhoto(${i})">
+                    <i class="bi bi-x-lg"></i>
+                </button>`;
+            grid.appendChild(div);
+        };
+        r.readAsDataURL(f);
+    });
+    txt.textContent = releaseFiles.length
+        ? `${releaseFiles.length} photo(s) selected — click to add more`
+        : 'Click to add photos of the seedlings';
+}
+// Drag & drop
+const dz = document.getElementById('releaseDropzone');
+if (dz) {
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor='var(--ps-green)'; });
+    dz.addEventListener('dragleave', () => dz.style.borderColor='');
+    dz.addEventListener('drop', e => {
+        e.preventDefault(); dz.style.borderColor='';
+        const fakeInput = { files: e.dataTransfer.files };
+        handleReleasePhotos(fakeInput);
+    });
+}
+</script>
 
 <?php include __DIR__ . '/../partials/layout_foot.php'; ?>

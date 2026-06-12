@@ -76,6 +76,11 @@ $requests = $srModel->getByUser($_SESSION['user']['id']);
                                 <span class="small text-muted">Awaiting Barangay Validation</span>
                             <?php elseif ($req['status'] === 'formal_request_submitted'): ?>
                                 <span class="small text-success"><i class="bi bi-check-circle me-1"></i>Formal Request Submitted</span>
+                            <?php elseif ($req['status'] === 'released'): ?>
+                                <a href="index.php?action=view_release_photos&request_id=<?= $req['id'] ?>"
+                                   class="btn btn-sm btn-ps-primary">
+                                    <i class="bi bi-images me-1"></i>View Seedlings
+                                </a>
                             <?php else: ?>
                                 <span class="small text-muted">—</span>
                             <?php endif; ?>

@@ -1,6 +1,9 @@
 <?php
 $pageTitle = 'Endorsement Letter';
-include __DIR__ . '/../partials/layout_head.php';
+// If embed mode, skip the full layout (sidebar etc) — just show the letter content
+$isEmbed = isset($_GET['embed']) && $_GET['embed'] == '1';
+if (!$isEmbed) include __DIR__ . '/../partials/layout_head.php';
+else echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Times+New+Roman&display=swap" rel="stylesheet"></head><body style="margin:0;padding:0;">';
 
 $rsModel = new RequestSlip($conn);
 $srModel = new ServiceRequest($conn);
@@ -113,7 +116,7 @@ $maoUser = $_SESSION['user'];
 </style>
 
 <!-- Action buttons -->
-<div class="d-flex gap-2 mb-4 no-print">
+<div class="d-flex gap-2 mb-4 no-print" <?= $isEmbed ? 'style="display:none!important;"' : '' ?>>
     <button onclick="window.print()" class="btn btn-ps-primary">
         <i class="bi bi-printer me-2"></i>Print Endorsement Letter
     </button>
@@ -248,4 +251,7 @@ $maoUser = $_SESSION['user'];
 
 </div>
 
-<?php include __DIR__ . '/../partials/layout_foot.php'; ?>
+<?php
+if (!$isEmbed) include __DIR__ . '/../partials/layout_foot.php';
+else echo '</body></html>';
+?>

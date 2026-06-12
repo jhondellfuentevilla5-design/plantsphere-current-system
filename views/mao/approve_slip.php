@@ -180,9 +180,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form method="POST">
         <div class="row mb-3">
             <div class="col-md-6">
-                <label class="form-label">Endorsement Reference Number <span class="text-danger">*</span></label>
+                <label class="form-label">Endorsement Reference Number</label>
+                <?php
+                // Auto-generate ref number: ENDR-YYYY-XXXX
+                $year = date('Y');
+                $countStmt = $conn->prepare("SELECT COUNT(*) as cnt FROM request_slips WHERE endorsement_ref_number IS NOT NULL AND YEAR(approved_at) = ?");
+                $countStmt->execute([$year]);
+                $seq = str_pad(($countStmt->fetch()['cnt'] + 1), 4, '0', STR_PAD_LEFT);
+                $autoRef = 'ENDR-' . $year . '-' . $seq;
+                ?>
                 <input type="text" name="endorsement_ref_number" class="form-control"
-                    placeholder="e.g. ENDR-2026-001" required>
+                    value="<?= htmlspecialchars($autoRef) ?>" readonly
+                    style="background:#f0faf0; font-weight:600; color:#2d5a27;">
+                <div class="form-text"><i class="bi bi-info-circle me-1"></i>Auto-generated reference number.</div>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Filing Date <span class="text-danger">*</span></label>

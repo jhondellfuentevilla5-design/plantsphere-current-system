@@ -103,7 +103,14 @@ $focusSlip = $focusId ? array_values(array_filter($slips, fn($s) => $s['id'] == 
                     <h6 class="fw-bold text-ps-green mb-1"><?= htmlspecialchars($focusSlip['slip_number']) ?></h6>
                     <div class="small text-muted">Request: <?= htmlspecialchars($focusSlip['request_number']) ?></div>
                 </div>
-                <span class="ps-badge ps-badge-approved">Approved by MAO</span>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="ps-badge ps-badge-approved">Approved by MAO</span>
+                    <!-- View Endorsement Letter -->
+                    <a href="index.php?action=view_endorsement&slip_id=<?= $focusSlip['id'] ?>"
+                       target="_blank" class="btn btn-sm btn-ps-primary">
+                        <i class="bi bi-file-earmark-text me-1"></i>View Endorsement Letter
+                    </a>
+                </div>
             </div>
             <div class="row g-3 mb-3">
                 <div class="col-md-6"><div class="small text-muted">Activity</div><div><?= htmlspecialchars($focusSlip['activity_name']) ?></div></div>
@@ -113,13 +120,53 @@ $focusSlip = $focusId ? array_values(array_filter($slips, fn($s) => $s['id'] == 
                 <div class="col-md-4"><div class="small text-muted">Seedling Type</div><div><?= htmlspecialchars($focusSlip['seedling_type']) ?></div></div>
                 <div class="col-md-4"><div class="small text-muted">Qty Approved</div><div class="fw-bold text-ps-green"><?= number_format($focusSlip['quantity_approved']) ?></div></div>
                 <div class="col-md-4"><div class="small text-muted">Seed Packs Counted</div><div class="fw-bold"><?= number_format($focusSlip['seed_packs_counted']) ?></div></div>
-                <div class="col-12"><div class="small text-muted">Endorsement Office</div><div class="fw-semibold"><?= htmlspecialchars($focusSlip['endorsement_office'] ?? '—') ?></div></div>
-                <div class="col-12"><div class="small text-muted">Validation Findings</div><div class="small"><?= nl2br(htmlspecialchars($focusSlip['findings'])) ?></div></div>
+
+                <!-- Endorsement details from MAO -->
+                <?php if (!empty($focusSlip['endorsement_ref_number'])): ?>
+                <div class="col-md-6">
+                    <div class="small text-muted">Endorsement Ref #</div>
+                    <div class="fw-semibold text-ps-green"><?= htmlspecialchars($focusSlip['endorsement_ref_number']) ?></div>
+                </div>
+                <?php endif; ?>
+                <?php if (!empty($focusSlip['filing_date'])): ?>
+                <div class="col-md-6">
+                    <div class="small text-muted">Filing Date</div>
+                    <div><?= date('F d, Y', strtotime($focusSlip['filing_date'])) ?></div>
+                </div>
+                <?php endif; ?>
+                <div class="col-12">
+                    <div class="small text-muted">Endorsement Office</div>
+                    <div class="fw-semibold"><?= htmlspecialchars($focusSlip['endorsement_office'] ?? '—') ?></div>
+                </div>
+                <div class="col-12">
+                    <div class="small text-muted">Validation Findings</div>
+                    <div class="small"><?= nl2br(htmlspecialchars($focusSlip['findings'])) ?></div>
+                </div>
             </div>
         </div>
 
         <div class="ps-card">
             <h6 class="fw-bold text-ps-green mb-3">Department Head Decision</h6>
+
+            <!-- Embedded endorsement letter preview -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold small">
+                    <i class="bi bi-file-earmark-text text-ps-green me-1"></i>
+                    Endorsement Letter Preview
+                </label>
+                <div style="border:1.5px solid #d8e8d5; border-radius:10px; overflow:hidden; height:340px;">
+                    <iframe src="index.php?action=view_endorsement&slip_id=<?= $focusSlip['id'] ?>&embed=1"
+                            width="100%" height="100%" style="border:none;"
+                            title="Endorsement Letter"></iframe>
+                </div>
+                <div class="mt-1 d-flex justify-content-end">
+                    <a href="index.php?action=view_endorsement&slip_id=<?= $focusSlip['id'] ?>"
+                       target="_blank" class="small text-ps-green text-decoration-none">
+                        <i class="bi bi-arrows-fullscreen me-1"></i>Open full screen
+                    </a>
+                </div>
+            </div>
+
             <form method="POST">
                 <input type="hidden" name="slip_id" value="<?= $focusSlip['id'] ?>">
                 <div class="mb-4">
