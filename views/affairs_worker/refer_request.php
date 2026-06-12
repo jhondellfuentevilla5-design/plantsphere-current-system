@@ -104,9 +104,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div><?= nl2br(htmlspecialchars($request['purpose'])) ?></div>
         </div>
         <?php if (!empty($request['request_letter'])): 
-            $letterPath = $request['request_letter'];
-            $letterExt  = strtolower(pathinfo($letterPath, PATHINFO_EXTENSION));
-            $letterName = basename($letterPath);
+            $letterPath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/' . ltrim($request['request_letter'], '/');
+            $letterExt  = strtolower(pathinfo($request['request_letter'], PATHINFO_EXTENSION));
+            $letterName = basename($request['request_letter']);
             $isPdf      = $letterExt === 'pdf';
         ?>
         <div class="col-12">
@@ -220,27 +220,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <!-- Action Form -->
-<?php if (in_array($request['status'], ['pending', 'barangay_approved'])): ?>
+<?php if (in_array($request['status'], ['pending', 'barangay_approved', 'formal_request_submitted'])): ?>
 <div class="ps-card">
-    <h6 class="fw-bold text-ps-green mb-3">Take Action</h6>
-    <?php if ($request['status'] === 'barangay_approved'): ?>
+    <h6 class="fw-bold text-ps-green mb-3">
+        <i class="bi bi-arrow-right-circle me-2"></i>Take Action
+    </h6>
+
+    <?php if ($request['status'] === 'formal_request_submitted'): ?>
+    <div class="alert alert-success py-2 small mb-3">
+        <i class="bi bi-check-circle-fill me-1"></i>
+        Barangay Captain <strong>approved</strong> this proposal and the organizer submitted a formal request.
+        Review the details above and verify stock availability before referring.
+    </div>
+    <?php elseif ($request['status'] === 'barangay_approved'): ?>
     <div class="alert alert-success py-2 small mb-3">
         <i class="bi bi-check-circle-fill me-1"></i>
         This proposal has been <strong>approved by the Barangay Captain</strong> and is ready for stock verification and referral.
     </div>
     <?php endif; ?>
+
+    <!-- Stock check summary before referring -->
+    <?php if ($matchedMaterial): ?>
+    <div class="p-3 rounded mb-3" style="background:#f0faf0; border:1.5px solid #b7dfb7;">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="bi bi-box-seam text-ps-green"></i>
+            <span class="fw-semibold small">Stock Verification</span>
+            <?php if ($matchedMaterial['quantity'] >= $request['quantity_requested']): ?>
+                <span class="ps-badge ps-badge-approved ms-auto">Sufficient</span>
+            <?php else: ?>
+                <span class="ps-badge ps-badge-pending ms-auto">Low Stock</span>
+            <?php endif; ?>
+        </div>
+        <div class="small text-muted">
+            <strong><?= htmlspecialchars($matchedMaterial['material_name']) ?></strong> —
+            Available: <strong><?= number_format($matchedMaterial['quantity']) ?> <?= $matchedMaterial['unit'] ?></strong> |
+            Requested: <strong><?= number_format($request['quantity_requested']) ?></strong>
+        </div>
+    </div>
+    <?php else: ?>
+    <div class="alert alert-warning py-2 small mb-3">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        Seedling type "<strong><?= htmlspecialchars($request['seedling_type']) ?></strong>" not found in inventory.
+        The Agricultural Technologist will need to verify this.
+    </div>
+    <?php endif; ?>
+
     <form method="POST">
         <div class="mb-3">
             <label class="form-label">Remarks / Notes</label>
-            <textarea name="remarks" class="form-control" rows="3" placeholder="Add any notes or remarks about this request..."></textarea>
+            <textarea name="remarks" class="form-control" rows="2"
+                placeholder="Add any notes about stock availability or observations..."></textarea>
         </div>
         <div class="d-flex gap-2">
             <button type="submit" name="action_taken" value="refer" class="btn btn-ps-primary">
-                Refer to Agricultural Technologist
+                <i class="bi bi-arrow-right-circle me-2"></i>Refer to Agricultural Technologist
             </button>
             <button type="submit" name="action_taken" value="reject" class="btn btn-danger"
                 onclick="return confirm('Are you sure you want to reject this request?')">
-                Reject Request
+                <i class="bi bi-x-circle me-1"></i>Reject
             </button>
             <a href="index.php?action=view_requests" class="btn btn-outline-secondary">Back</a>
         </div>

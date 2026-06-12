@@ -257,10 +257,26 @@ $activeMode = $old['submission_mode'] ?? 'form';
                 <label class="form-label">Seedling Type Requested <span class="text-danger">*</span></label>
                 <select name="seedling_type" class="form-select" required>
                     <option value="" disabled <?= empty($old['seedling_type']) ? 'selected' : '' ?>>Select seedling type</option>
-                    <?php foreach ($materials as $m): ?>
-                        <option value="<?= htmlspecialchars($m['material_name']) ?>"
-                            <?= ($old['seedling_type'] ?? '') === $m['material_name'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($m['material_name']) ?> (<?= $m['quantity'] ?> <?= $m['unit'] ?> available)
+                    <?php
+                    $interventionList = [
+                        'Banana Lakatan','Avocado','Marang','Durian','Lanzones',
+                        'Rambutan','Jackfruit','Corn','Coffee','Cacao',
+                        'Vegetable Seeds'
+                    ];
+                    // Build lookup from DB materials for quantity display
+                    $matLookup = [];
+                    foreach ($materials as $m) {
+                        $matLookup[$m['material_name']] = $m;
+                    }
+                    foreach ($interventionList as $iName):
+                        $mat = $matLookup[$iName] ?? null;
+                        $qtyLabel = ($mat && $mat['quantity'] > 0)
+                            ? ' (' . number_format($mat['quantity']) . ' ' . htmlspecialchars($mat['unit']) . ' available)'
+                            : '';
+                    ?>
+                        <option value="<?= htmlspecialchars($iName) ?>"
+                            <?= ($old['seedling_type'] ?? '') === $iName ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($iName) ?><?= $qtyLabel ?>
                         </option>
                     <?php endforeach; ?>
                     <option value="Other" <?= ($old['seedling_type'] ?? '') === 'Other' ? 'selected' : '' ?>>Other (specify in purpose)</option>

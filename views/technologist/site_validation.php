@@ -64,6 +64,12 @@ $selectedRequest = $requestId ? $srModel->getById($requestId) : null;
     color: #fff; font-size: 0.65rem;
     text-align: center; padding: 3px 0;
 }
+
+@keyframes pulse {
+    0%   { transform: scale(1);   opacity: 0.6; }
+    70%  { transform: scale(2.5); opacity: 0; }
+    100% { transform: scale(1);   opacity: 0; }
+}
 </style>
 
 <div class="ps-page-header">
@@ -269,11 +275,27 @@ $selectedRequest = $requestId ? $srModel->getById($requestId) : null;
             </form>
         </div>
 
-        <!-- Empty state -->
+        <!-- Empty state — interactive map preview -->
         <div id="emptyState" class="ps-card <?= $selectedRequest ? 'd-none' : '' ?>">
-            <div class="empty-state">
-                <i class="bi bi-geo-alt" style="font-size:2.5rem;opacity:0.2;"></i>
-                <p class="mt-2">Select a request from the list to begin site validation.</p>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-geo-alt-fill text-ps-green" style="font-size:1.2rem;"></i>
+                <div>
+                    <div class="fw-bold small">Site Map — Toril District, Davao City</div>
+                    <div class="text-muted" style="font-size:0.72rem;">Select a request from the list to begin validation. You can explore the map below.</div>
+                </div>
+            </div>
+            <!-- Search bar for preview map -->
+            <div class="input-group mb-2">
+                <input type="text" id="previewSearchInput" class="form-control form-control-sm"
+                       placeholder="Search a location to explore...">
+                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="previewSearch()">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+            <div id="previewMap" style="height:320px; border-radius:10px; border:1.5px solid #d8e8d5; overflow:hidden;"></div>
+            <div class="small text-muted mt-2">
+                <i class="bi bi-info-circle me-1"></i>
+                Click anywhere on the map to explore. Select a request from the left panel to begin site validation with pinning.
             </div>
         </div>
 
@@ -594,6 +616,94 @@ formObserver.observe(document.body, { attributes: true, subtree: true });
 <?php if ($requestId): ?>
 document.addEventListener('DOMContentLoaded', () => setTimeout(() => { if (!map) initMap(); }, 300));
 <?php endif; ?>
+
+// ── Preview map on empty state (always visible, fully interactive) ──
+let previewMap, previewMarker;
+document.addEventListener('DOMContentLoaded', () => {
+    const previewEl = document.getElementById('previewMap');
+    if (!previewEl) return;
+
+    previewMap = L.map('previewMap', { zoomControl: true, scrollWheelZoom: true })
+                  .setView([7.0731, 125.6128], 13); // Toril, Davao
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+    }).addTo(previewMap);
+
+    const greenIcon = L.divIcon({
+        className: '',
+        html: `<div style="position:relative;">
+                 <div style="background:#2d5a27;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>
+                 <div style="position:absolute;top:-4px;left:-4px;width:24px;height:24px;border-radius:50%;border:2px solid #2d5a27;opacity:0.5;animation:pulse 1.5s infinite;"></div>
+               </div>`,
+        iconSize: [16, 16], iconAnchor: [8, 8],
+    });
+
+    // Default marker
+    previewMarker = L.marker([7.0731, 125.6128], { icon: greenIcon, draggable: true })
+        .addTo(previewMap)
+        .bindPopup('<b>Toril District, Davao City</b><br><small>Click anywhere to explore</small>')
+        .openPopup();
+
+    // Click to move marker and show coordinates
+    previewMap.on('click', e => {
+        const { lat, lng } = e.latlng;
+        previewMarker.setLatLng([lat, lng]);
+
+        // Reverse geocode
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+            .then(r => r.json())
+            .then(data => {
+                const name = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                previewMarker.bindPopup(
+                    `<b>${name.substring(0, 60)}${name.length > 60 ? '...' : ''}</b>` +
+                    `<br><small>${lat.toFixed(6)}, ${lng.toFixed(6)}</small>`
+                ).openPopup();
+            })
+            .catch(() => {
+                previewMarker.bindPopup(`<b>${lat.toFixed(6)}, ${lng.toFixed(6)}</b>`).openPopup();
+            });
+    });
+
+    previewMarker.on('dragend', e => {
+        const { lat, lng } = e.target.getLatLng();
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+            .then(r => r.json())
+            .then(data => {
+                previewMarker.bindPopup(
+                    `<b>${(data.display_name || '').substring(0, 60)}</b>` +
+                    `<br><small>${lat.toFixed(6)}, ${lng.toFixed(6)}</small>`
+                ).openPopup();
+            }).catch(() => {});
+    });
+});
+
+function previewSearch() {
+    const query = document.getElementById('previewSearchInput').value.trim();
+    if (!query || !previewMap) return;
+
+    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                previewMap.setView([lat, lng], 16);
+                previewMarker.setLatLng([lat, lng]);
+                previewMarker.bindPopup(`<b>${data[0].display_name.substring(0, 80)}</b><br><small>${lat.toFixed(6)}, ${lng.toFixed(6)}</small>`).openPopup();
+            } else {
+                alert('Location not found. Try a more specific address.');
+            }
+        })
+        .catch(() => alert('Search failed. Check internet connection.'));
+}
+
+// Enter key triggers preview search
+document.addEventListener('DOMContentLoaded', () => {
+    const inp = document.getElementById('previewSearchInput');
+    if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); previewSearch(); }});
+});
 </script>
 
 <?php include __DIR__ . '/../partials/layout_foot.php'; ?>

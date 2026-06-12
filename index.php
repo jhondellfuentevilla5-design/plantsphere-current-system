@@ -257,6 +257,12 @@ switch ($action) {
         include 'views/mao/review_slips.php';
         break;
 
+    case 'view_endorsement':
+        requireRole(['mao', 'department_head', 'admin']);
+        logAct($conn, 'view_endorsement', $_SESSION['user']['role'], 'Viewed endorsement letter for slip ID: ' . intval($_GET['slip_id'] ?? 0));
+        include 'views/mao/endorsement_letter.php';
+        break;
+
     case 'approve_slip':
         requireRole('mao');
         logAct($conn, 'view_approve_slip', 'mao', 'Viewed approve slip ID: ' . intval($_GET['id'] ?? 0));

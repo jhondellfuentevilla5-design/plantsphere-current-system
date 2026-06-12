@@ -168,11 +168,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="form-label">Seedling Variety / Name <span class="text-danger">*</span></label>
                 <select name="seedling_variety" class="form-select" required>
                     <option value="" disabled <?= empty($_POST['seedling_variety']) ? 'selected' : '' ?>>Select seedling variety</option>
-                    <?php foreach ($materials as $m): ?>
-                        <option value="<?= htmlspecialchars($m['material_name']) ?>"
-                            <?= (($_POST['seedling_variety'] ?? $proposal['seedling_type']) === $m['material_name']) ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($m['material_name']) ?>
-                            (<?= number_format($m['quantity']) ?> <?= $m['unit'] ?> available)
+                    <?php
+                    $plantingList = [
+                        'Banana Lakatan','Avocado','Marang','Durian','Lanzones',
+                        'Rambutan','Jackfruit','Corn','Coffee','Cacao','Vegetable Seeds'
+                    ];
+                    $matLookup = [];
+                    foreach ($materials as $m) $matLookup[$m['material_name']] = $m;
+                    $selectedVariety = $_POST['seedling_variety'] ?? $proposal['seedling_type'] ?? '';
+                    foreach ($plantingList as $pName):
+                        $mat = $matLookup[$pName] ?? null;
+                        $qtyLabel = ($mat && $mat['quantity'] > 0)
+                            ? ' (' . number_format($mat['quantity']) . ' ' . htmlspecialchars($mat['unit']) . ' available)'
+                            : '';
+                    ?>
+                        <option value="<?= htmlspecialchars($pName) ?>"
+                            <?= $selectedVariety === $pName ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($pName) ?><?= $qtyLabel ?>
                         </option>
                     <?php endforeach; ?>
                 </select>

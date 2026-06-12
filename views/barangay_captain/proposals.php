@@ -89,8 +89,8 @@ $display = $filter === 'all' ? $all : array_filter($all, fn($r) => $r['status'] 
                     <td>
                         <?php if (!empty($p['request_letter'])): ?>
                             <?php
-                                $letterPath = ltrim($p['request_letter'], '/');
-                                $ext = strtolower(pathinfo($letterPath, PATHINFO_EXTENSION));
+                                $letterPath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/' . ltrim($p['request_letter'], '/');
+                                $ext = strtolower(pathinfo($p['request_letter'], PATHINFO_EXTENSION));
                             ?>
                             <div class="d-flex gap-1">
                                 <?php if ($ext === 'pdf'): ?>
@@ -105,15 +105,32 @@ $display = $filter === 'all' ? $all : array_filter($all, fn($r) => $r['status'] 
                                 </a>
                             </div>
                         <?php else: ?>
-                            <span class="text-muted small">No letter uploaded</span>
+                            <span class="text-muted small">—</span>
                         <?php endif; ?>
                     </td>
                     <td><span class="ps-badge ps-badge-<?= $p['status'] ?>"><?= ucfirst($p['status']) ?></span></td>
                     <td>
                         <?php if ($p['status'] === 'pending'): ?>
+                        <?php
+                            // Build absolute letter path
+                            $lp = !empty($p['request_letter'])
+                                ? rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/' . ltrim($p['request_letter'], '/')
+                                : '';
+                            $lp = htmlspecialchars($lp);
+                        ?>
                         <button type="button" class="btn btn-sm btn-ps-primary"
-                            onclick="openReview(<?= $p['id'] ?>, '<?= htmlspecialchars(addslashes($p['activity_name'])) ?>', '<?= htmlspecialchars(ltrim($p['request_letter'] ?? '', '/')) ?>')">
-                            Review
+                            onclick="openReview(
+                                <?= $p['id'] ?>,
+                                '<?= htmlspecialchars(addslashes($p['activity_name'])) ?>',
+                                '<?= addslashes($lp) ?>',
+                                '<?= htmlspecialchars(addslashes($p['firstname'] . ' ' . $p['lastname'])) ?>',
+                                '<?= htmlspecialchars(addslashes($p['target_location'])) ?>',
+                                '<?= date('M d, Y', strtotime($p['target_date'])) ?>',
+                                '<?= htmlspecialchars(addslashes($p['seedling_type'] ?? '')) ?>',
+                                '<?= number_format($p['quantity_requested'] ?? 0) ?>',
+                                '<?= htmlspecialchars(addslashes(mb_substr($p['purpose'] ?? '', 0, 300))) ?>'
+                            )">
+                            <i class="bi bi-eye me-1"></i>Review
                         </button>
                         <?php else: ?>
                             <span class="small text-muted"><?= $p['remarks'] ? htmlspecialchars(substr($p['remarks'],0,30)).'...' : '—' ?></span>
@@ -138,12 +155,48 @@ $display = $filter === 'all' ? $all : array_filter($all, fn($r) => $r['status'] 
             <form method="POST">
                 <div class="modal-body">
                     <input type="hidden" name="approval_id" id="reviewApprovalId">
-                    <p class="small text-muted mb-3">Proposal: <strong id="reviewActivityName"></strong></p>
+
+                    <!-- Proposal Details Summary -->
+                    <div class="p-3 rounded mb-3" style="background:#f0faf0; border:1px solid #b7dfb7;">
+                        <div class="row g-2 small">
+                            <div class="col-12">
+                                <span class="text-muted">Activity:</span>
+                                <strong id="reviewActivityName" class="ms-1"></strong>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="text-muted">Organizer:</span>
+                                <span id="reviewOrganizer" class="ms-1"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="text-muted">Location:</span>
+                                <span id="reviewLocation" class="ms-1"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="text-muted">Date:</span>
+                                <span id="reviewDate" class="ms-1"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="text-muted">Seedling:</span>
+                                <span id="reviewSeedling" class="ms-1"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="text-muted">Quantity:</span>
+                                <span id="reviewQty" class="ms-1 fw-bold text-ps-green"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Purpose -->
+                    <div id="reviewPurposeWrap" class="mb-3 d-none">
+                        <label class="form-label fw-semibold small">Purpose / Justification</label>
+                        <div id="reviewPurpose" class="p-2 rounded small"
+                             style="background:#f8faf8; border:1px solid #d8e8d5; line-height:1.7; max-height:120px; overflow-y:auto;"></div>
+                    </div>
 
                     <!-- Letter preview -->
                     <div id="letterPreviewWrap" class="mb-3 d-none">
                         <label class="form-label fw-semibold">Uploaded Request Letter</label>
-                        <div class="border rounded overflow-hidden" style="height:420px;">
+                        <div class="border rounded overflow-hidden" style="height:380px;">
                             <iframe id="letterIframe" src="" width="100%" height="100%"
                                     style="border:none;" title="Request Letter"></iframe>
                         </div>
@@ -154,12 +207,13 @@ $display = $filter === 'all' ? $all : array_filter($all, fn($r) => $r['status'] 
                             </a>
                         </div>
                     </div>
-                    <div id="noLetterMsg" class="alert alert-warning d-none py-2 small">
-                        <i class="bi bi-exclamation-triangle me-1"></i>No request letter uploaded for this proposal.
+                    <div id="noLetterMsg" class="alert alert-info d-none py-2 small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        This proposal was submitted via form (no letter attachment). Review the details above.
                     </div>
 
                     <label class="form-label">Remarks / Notes</label>
-                    <textarea name="remarks" class="form-control" rows="3"
+                    <textarea name="remarks" class="form-control" rows="2"
                         placeholder="Add your remarks or reason for decision..."></textarea>
                 </div>
                 <div class="modal-footer">
@@ -194,17 +248,33 @@ $display = $filter === 'all' ? $all : array_filter($all, fn($r) => $r['status'] 
 </div>
 
 <script>
-function openReview(id, name, letterPath) {
+function openReview(id, name, letterPath, organizer, location, date, seedling, qty, purpose) {
     document.getElementById('reviewApprovalId').value = id;
-    document.getElementById('reviewActivityName').textContent = name;
+    document.getElementById('reviewActivityName').textContent  = name;
+    document.getElementById('reviewOrganizer').textContent     = organizer;
+    document.getElementById('reviewLocation').textContent      = location;
+    document.getElementById('reviewDate').textContent          = date;
+    document.getElementById('reviewSeedling').textContent      = seedling || '—';
+    document.getElementById('reviewQty').textContent           = qty || '—';
 
-    const wrap    = document.getElementById('letterPreviewWrap');
+    // Purpose
+    const purposeWrap = document.getElementById('reviewPurposeWrap');
+    const purposeEl   = document.getElementById('reviewPurpose');
+    if (purpose && purpose.trim() && purpose !== '[See attached request letter]') {
+        purposeEl.textContent = purpose;
+        purposeWrap.classList.remove('d-none');
+    } else {
+        purposeWrap.classList.add('d-none');
+    }
+
+    // Letter
+    const wrap     = document.getElementById('letterPreviewWrap');
     const noLetter = document.getElementById('noLetterMsg');
-    const iframe  = document.getElementById('letterIframe');
-    const dlLink  = document.getElementById('letterDownloadLink');
+    const iframe   = document.getElementById('letterIframe');
+    const dlLink   = document.getElementById('letterDownloadLink');
 
     if (letterPath) {
-        iframe.src = letterPath;
+        iframe.src  = letterPath;
         dlLink.href = letterPath;
         wrap.classList.remove('d-none');
         noLetter.classList.add('d-none');

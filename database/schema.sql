@@ -137,26 +137,53 @@ CREATE TABLE IF NOT EXISTS notifications (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Intervention Inventory (City Agriculturist's Office — Toril District)
+-- Intervention Inventory — Planting Materials Only (City Agriculturist's Office — Toril District)
 INSERT IGNORE INTO planting_materials (material_name, material_type, quantity, unit, description) VALUES
-('Banana Lakatan',      'Fruit Tree',         0, 'seedlings',   'Lakatan banana planting materials'),
-('Avocado',             'Fruit Tree',         0, 'seedlings',   'Avocado fruit tree seedlings'),
-('Marang',              'Fruit Tree',         0, 'seedlings',   'Marang fruit tree seedlings'),
-('Durian',              'Fruit Tree',         0, 'seedlings',   'Durian fruit tree seedlings'),
-('Lanzones',            'Fruit Tree',         0, 'seedlings',   'Lanzones fruit tree seedlings'),
-('Rambutan',            'Fruit Tree',         0, 'seedlings',   'Rambutan fruit tree seedlings'),
-('Jackfruit',           'Fruit Tree',         0, 'seedlings',   'Jackfruit tree seedlings'),
-('Corn',                'Crop',               0, 'packs',       'Corn seeds for planting'),
-('Coffee',              'Cash Crop',          0, 'seedlings',   'Coffee plant seedlings'),
-('Cacao',               'Cash Crop',          0, 'seedlings',   'Cacao plant seedlings'),
-('Tilapia Fingerlings', 'Aquaculture',        0, 'fingerlings', 'Tilapia fingerlings for aquaculture'),
-('Hito Fingerling',     'Aquaculture',        0, 'fingerlings', 'Hito (catfish) fingerlings for aquaculture'),
-('Trichogramma',        'Biological Control', 0, 'packs',       'Trichogramma biological pest control'),
-('Fertilizer',          'Input/Supply',       0, 'bags',        'Agricultural fertilizer'),
-('Vegetable Seeds',     'Crop',               0, 'packs',       'Assorted vegetable seeds');
+('Banana Lakatan', 'Fruit Tree',  0, 'seedlings', 'Lakatan banana planting materials'),
+('Avocado',        'Fruit Tree',  0, 'seedlings', 'Avocado fruit tree seedlings'),
+('Marang',         'Fruit Tree',  0, 'seedlings', 'Marang fruit tree seedlings'),
+('Durian',         'Fruit Tree',  0, 'seedlings', 'Durian fruit tree seedlings'),
+('Lanzones',       'Fruit Tree',  0, 'seedlings', 'Lanzones fruit tree seedlings'),
+('Rambutan',       'Fruit Tree',  0, 'seedlings', 'Rambutan fruit tree seedlings'),
+('Jackfruit',      'Fruit Tree',  0, 'seedlings', 'Jackfruit tree seedlings'),
+('Corn',           'Crop',        0, 'packs',     'Corn seeds for planting'),
+('Coffee',         'Cash Crop',   0, 'seedlings', 'Coffee plant seedlings'),
+('Cacao',          'Cash Crop',   0, 'seedlings', 'Cacao plant seedlings'),
+('Vegetable Seeds','Crop',        0, 'packs',     'Assorted vegetable seeds');
 
--- UPDATE QUANTITIES — i-copy tanan, i-paste sa phpMyAdmin SQL tab, click Go
-UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Banana Lakatan';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Avocado';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Marang';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Durian';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Lanzones';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Rambutan';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Jackfruit';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Corn';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Coffee';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Cacao';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Tilapia Fingerlings';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Hito Fingerling';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Trichogramma';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Fertilizer';UPDATE planting_materials SET quantity = 500 WHERE material_name = 'Vegetable Seeds';
+-- ============================================================
+-- DEMO ACCOUNTS — Pre-registered Organizers with RSBSA
+-- Password for all accounts: Password@123
+-- ============================================================
+
+-- Users (organizers)
+INSERT IGNORE INTO users (firstname, lastname, email, password, role, is_active, created_at) VALUES
+('Maria',   'Santos',    'maria.santos@demo.com',    '$2y$12$q5eCuMDNBcSP6uXR3J6sduQqm9Ij5QOTT0KagnTcB1r.WyYptB0f.', 'community_organizer', 1, NOW()),
+('Jose',    'Reyes',     'jose.reyes@demo.com',      '$2y$12$q5eCuMDNBcSP6uXR3J6sduQqm9Ij5QOTT0KagnTcB1r.WyYptB0f.', 'community_organizer', 1, NOW()),
+('Ana',     'Cruz',      'ana.cruz@demo.com',        '$2y$12$q5eCuMDNBcSP6uXR3J6sduQqm9Ij5QOTT0KagnTcB1r.WyYptB0f.', 'community_organizer', 1, NOW()),
+('Pedro',   'Lim',       'pedro.lim@demo.com',       '$2y$12$q5eCuMDNBcSP6uXR3J6sduQqm9Ij5QOTT0KagnTcB1r.WyYptB0f.', 'community_organizer', 1, NOW()),
+('Rosa',    'Garcia',    'rosa.garcia@demo.com',     '$2y$12$q5eCuMDNBcSP6uXR3J6sduQqm9Ij5QOTT0KagnTcB1r.WyYptB0f.', 'community_organizer', 1, NOW());
+
+-- RSBSA Records (verified) for each demo organizer
+-- Note: user_id will depend on auto-increment; use subquery to link by email
+INSERT IGNORE INTO rsbsa_registry (user_id, rsbsa_number, barangay, municipality, province, farm_size, crop_type, registration_date, status)
+SELECT id, '01-073-001-000001', 'Toril',        'Davao City', 'Davao del Sur', 1.50, 'Fruit Trees',   '2024-01-15', 'verified' FROM users WHERE email = 'maria.santos@demo.com';
+
+INSERT IGNORE INTO rsbsa_registry (user_id, rsbsa_number, barangay, municipality, province, farm_size, crop_type, registration_date, status)
+SELECT id, '01-073-001-000002', 'Catalunan',    'Davao City', 'Davao del Sur', 2.00, 'Corn',          '2024-02-10', 'verified' FROM users WHERE email = 'jose.reyes@demo.com';
+
+INSERT IGNORE INTO rsbsa_registry (user_id, rsbsa_number, barangay, municipality, province, farm_size, crop_type, registration_date, status)
+SELECT id, '01-073-001-000003', 'Matina',       'Davao City', 'Davao del Sur', 0.75, 'Vegetables',    '2024-03-05', 'verified' FROM users WHERE email = 'ana.cruz@demo.com';
+
+INSERT IGNORE INTO rsbsa_registry (user_id, rsbsa_number, barangay, municipality, province, farm_size, crop_type, registration_date, status)
+SELECT id, '01-073-001-000004', 'Buhangin',     'Davao City', 'Davao del Sur', 3.25, 'Agroforestry',  '2024-04-20', 'verified' FROM users WHERE email = 'pedro.lim@demo.com';
+
+INSERT IGNORE INTO rsbsa_registry (user_id, rsbsa_number, barangay, municipality, province, farm_size, crop_type, registration_date, status)
+SELECT id, '01-073-001-000005', 'Calinan',      'Davao City', 'Davao del Sur', 1.80, 'Mixed Farming', '2024-05-12', 'verified' FROM users WHERE email = 'rosa.garcia@demo.com';
+
+-- UPDATE QUANTITIES for planting materials (run in phpMyAdmin)
+UPDATE planting_materials SET quantity = 500 WHERE material_name IN ('Banana Lakatan','Avocado','Marang','Durian','Lanzones','Rambutan','Jackfruit','Corn','Coffee','Cacao','Vegetable Seeds');
+DELETE FROM planting_materials WHERE material_name IN ('Tilapia Fingerlings','Hito Fingerling','Trichogramma','Fertilizer');
 
 -- Formal Requests (Process 3 — generated after Barangay Captain approval)
 CREATE TABLE IF NOT EXISTS formal_requests (
@@ -286,6 +313,8 @@ ALTER TABLE request_slips
     ADD COLUMN IF NOT EXISTS finalized_at TIMESTAMP NULL,
     ADD COLUMN IF NOT EXISTS endorsement_ref_number VARCHAR(100) NULL,
     ADD COLUMN IF NOT EXISTS filing_date DATE NULL,
+    ADD COLUMN IF NOT EXISTS endorsed_planting_site VARCHAR(200) NULL,
+    ADD COLUMN IF NOT EXISTS endorsed_quantity INT NULL,
     ADD COLUMN IF NOT EXISTS technologist_validated TINYINT(1) DEFAULT 0,
     ADD COLUMN IF NOT EXISTS technologist_validated_at TIMESTAMP NULL,
     ADD COLUMN IF NOT EXISTS technologist_validated_by INT NULL;

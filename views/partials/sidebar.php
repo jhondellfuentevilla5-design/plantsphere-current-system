@@ -23,7 +23,7 @@ if ($role === 'community_organizer') {
         ['action' => 'dashboard',        'label' => 'Dashboard',           'icon' => 'bi-speedometer2'],
         ['action' => 'submit_request',   'label' => 'Submit Proposal',     'icon' => 'bi-file-earmark-plus'],
         ['action' => 'my_requests',      'label' => 'My Proposals',        'icon' => 'bi-clipboard-list'],
-        ['action' => 'rsbsa_form',       'label' => 'RSBSA Registration',  'icon' => 'bi-person-vcard'],
+        ['action' => 'rsbsa_form',       'label' => 'RSBSA Verification',  'icon' => 'bi-person-vcard'],
         ['action' => 'nursery_survival', 'label' => 'Survival Monitoring', 'icon' => 'bi-tree'],
     ];
 } elseif ($role === 'community_affairs_worker') {

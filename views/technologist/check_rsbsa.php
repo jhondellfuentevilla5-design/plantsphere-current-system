@@ -66,8 +66,8 @@ $organizers = $userModel->getAllByRole('community_organizer');
 ?>
 
 <div class="ps-page-header">
-    <h2>RSBSA Registry</h2>
-    <p>Verify registrations, assist unregistered farmers, and process requests.</p>
+    <h2>RSBSA Verification</h2>
+    <p>Verify RSBSA numbers submitted by organizers against the official registry.</p>
 </div>
 
 <?php if (isset($success)): ?>
@@ -140,54 +140,16 @@ $organizers = $userModel->getAllByRole('community_organizer');
         <?php endif; ?>
 
     <?php else: ?>
-        <!-- NO RSBSA — show assisted registration inline -->
-        <div class="rsbsa-assist-banner">
-            <div class="rsbsa-assist-icon">
-                <i class="bi bi-person-exclamation"></i>
-            </div>
-            <div class="rsbsa-assist-body">
-                <div class="rsbsa-assist-title">No RSBSA Registration Found</div>
-                <div class="rsbsa-assist-desc">
+        <!-- NO RSBSA — organizer has not submitted yet -->
+        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background:#fff8e1;border:1.5px solid #ffe082;">
+            <i class="bi bi-person-exclamation text-warning mt-1" style="font-size:1.3rem;"></i>
+            <div>
+                <div class="fw-semibold small" style="color:#856404;">No RSBSA Number Submitted</div>
+                <div class="small text-muted mt-1">
                     <strong><?= htmlspecialchars($focusRequest['firstname'] . ' ' . $focusRequest['lastname']) ?></strong>
-                    has not submitted an RSBSA registration. You can register them on their behalf below.
+                    has not yet submitted their RSBSA number. They need to go to
+                    <strong>RSBSA Verification</strong> in their dashboard and enter their RSBSA number first.
                 </div>
-            </div>
-        </div>
-
-        <!-- Assisted registration form for this specific organizer -->
-        <div class="assist-form-wrap mt-3" id="assistFormFocus">
-            <div class="assist-form-header">
-                <i class="bi bi-person-plus-fill me-2"></i>
-                Assisted RSBSA Registration — <?= htmlspecialchars($focusRequest['firstname'] . ' ' . $focusRequest['lastname']) ?>
-            </div>
-            <div class="assist-form-body">
-                <form method="POST">
-                    <input type="hidden" name="assisted_register" value="1">
-                    <input type="hidden" name="target_user_id" value="<?= $focusRequest['user_id'] ?>">
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">First Name</label>
-                            <input type="text" class="form-control" value="<?= htmlspecialchars($focusRequest['firstname']) ?>" disabled>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" class="form-control" value="<?= htmlspecialchars($focusRequest['lastname']) ?>" disabled>
-                        </div>
-                    </div>
-
-                    <?php include __DIR__ . '/rsbsa_fields.php'; ?>
-
-                    <div class="d-flex gap-2 mt-3">
-                        <button type="submit" class="btn btn-ps-primary">
-                            <i class="bi bi-person-check me-1"></i>Register & Verify
-                        </button>
-                    </div>
-                    <div class="form-text mt-2">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Registration will be automatically verified since you are registering on their behalf.
-                    </div>
-                </form>
             </div>
         </div>
     <?php endif; ?>
@@ -196,52 +158,41 @@ $organizers = $userModel->getAllByRole('community_organizer');
 
 <div class="row g-4">
 
-    <!-- ── Left: Assisted registration for any organizer ── -->
+    <!-- ── Left: Summary stats ── -->
     <div class="col-md-4">
         <div class="ps-card">
-            <h6 class="fw-bold text-ps-green mb-1">
-                <i class="bi bi-person-plus me-2"></i>Assisted Registration
+            <h6 class="fw-bold text-ps-green mb-3">
+                <i class="bi bi-bar-chart me-2"></i>Registry Summary
             </h6>
-            <p class="small text-muted mb-3">
-                Register an organizer or farmer who is present but not yet in the system.
-            </p>
-
-            <form method="POST" id="assistedForm">
-                <input type="hidden" name="assisted_register" value="1">
-
-                <div class="mb-3">
-                    <label class="form-label">Select Organizer <span class="text-danger">*</span></label>
-                    <select name="target_user_id" class="form-select" required
-                            onchange="checkExistingRsbsa(this.value)">
-                        <option value="" disabled selected>Choose organizer</option>
-                        <?php foreach ($organizers as $org):
-                            $hasRsbsa = $rsbsaModel->getByUser($org['id']);
-                        ?>
-                        <option value="<?= $org['id'] ?>"
-                                data-name="<?= htmlspecialchars($org['firstname'] . ' ' . $org['lastname']) ?>"
-                                data-has="<?= $hasRsbsa ? '1' : '0' ?>"
-                                data-status="<?= $hasRsbsa ? $hasRsbsa['status'] : '' ?>">
-                            <?= htmlspecialchars($org['firstname'] . ' ' . $org['lastname']) ?>
-                            <?= $hasRsbsa ? ' (' . ucfirst($hasRsbsa['status']) . ')' : ' — No RSBSA' ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <!-- Status indicator -->
-                    <div id="rsbsaStatusHint" class="mt-2 d-none"></div>
+            <?php
+            $allStats   = $rsbsaModel->getAll();
+            $pendingCnt  = count(array_filter($allStats, fn($r) => $r['status'] === 'pending'));
+            $verifiedCnt = count(array_filter($allStats, fn($r) => $r['status'] === 'verified'));
+            $rejectedCnt = count(array_filter($allStats, fn($r) => $r['status'] === 'rejected'));
+            ?>
+            <div class="d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background:#fff8e1;border:1px solid #ffe082;">
+                    <span class="small fw-semibold" style="color:#856404;"><i class="bi bi-hourglass-split me-1"></i>Pending Verification</span>
+                    <span class="fw-bold" style="color:#856404;"><?= $pendingCnt ?></span>
                 </div>
-
-                <!-- Fields shown after selecting an unregistered organizer -->
-                <div id="assistedFields" class="d-none">
-                    <?php include __DIR__ . '/rsbsa_fields.php'; ?>
-                    <button type="submit" class="btn btn-ps-primary w-100 mt-3">
-                        <i class="bi bi-person-check me-1"></i>Register & Verify
-                    </button>
-                    <div class="form-text mt-2">
-                        <i class="bi bi-shield-check me-1"></i>
-                        Registration will be automatically verified.
-                    </div>
+                <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background:#f0faf0;border:1px solid #b7dfb7;">
+                    <span class="small fw-semibold text-success"><i class="bi bi-patch-check-fill me-1"></i>Verified</span>
+                    <span class="fw-bold text-success"><?= $verifiedCnt ?></span>
                 </div>
-            </form>
+                <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background:#fdf2f2;border:1px solid #f5c6cb;">
+                    <span class="small fw-semibold text-danger"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
+                    <span class="fw-bold text-danger"><?= $rejectedCnt ?></span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background:#f8faf8;border:1px solid #d8e8d5;">
+                    <span class="small fw-semibold text-muted"><i class="bi bi-people me-1"></i>Total Submissions</span>
+                    <span class="fw-bold"><?= count($allStats) ?></span>
+                </div>
+            </div>
+            <hr class="section-divider">
+            <div class="small text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Organizers submit their existing RSBSA numbers. Verify each one against the official DA registry before processing their requests.
+            </div>
         </div>
     </div>
 
@@ -368,37 +319,7 @@ $organizers = $userModel->getAllByRole('community_organizer');
 </style>
 
 <script>
-function checkExistingRsbsa(userId) {
-    if (!userId) return;
-    const sel    = document.querySelector('[name="target_user_id"]');
-    const opt    = sel.options[sel.selectedIndex];
-    const has    = opt.dataset.has === '1';
-    const status = opt.dataset.status;
-    const name   = opt.dataset.name;
-    const hint   = document.getElementById('rsbsaStatusHint');
-    const fields = document.getElementById('assistedFields');
-
-    hint.classList.remove('d-none');
-
-    if (has) {
-        hint.innerHTML = `
-            <div class="alert alert-${status === 'verified' ? 'success' : status === 'pending' ? 'warning' : 'danger'} py-2 small mb-0">
-                <i class="bi bi-info-circle me-1"></i>
-                <strong>${name}</strong> already has an RSBSA registration
-                with status: <strong>${status.charAt(0).toUpperCase() + status.slice(1)}</strong>.
-                No new registration needed.
-            </div>`;
-        fields.classList.add('d-none');
-    } else {
-        hint.innerHTML = `
-            <div class="alert alert-warning py-2 small mb-0">
-                <i class="bi bi-exclamation-triangle me-1"></i>
-                <strong>${name}</strong> has no RSBSA registration.
-                Fill in the details below to register them.
-            </div>`;
-        fields.classList.remove('d-none');
-    }
-}
+// No JS needed — pure server-side verification
 </script>
 
 <?php include __DIR__ . '/../partials/layout_foot.php'; ?>

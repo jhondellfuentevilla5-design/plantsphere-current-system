@@ -21,7 +21,7 @@ class BarangayApproval {
     }
 
     public function getAllForCaptain($captainId) {
-        $stmt = $this->conn->prepare("SELECT ba.*, sr.request_number, sr.activity_name, sr.target_location, sr.target_date, u.firstname, u.lastname FROM barangay_approvals ba JOIN service_requests sr ON ba.request_id = sr.id JOIN users u ON sr.user_id = u.id WHERE ba.captain_id = ? ORDER BY ba.created_at DESC");
+        $stmt = $this->conn->prepare("SELECT ba.*, sr.request_number, sr.activity_name, sr.target_location, sr.target_date, sr.purpose, sr.request_letter, sr.seedling_type, sr.quantity_requested, u.firstname, u.lastname FROM barangay_approvals ba JOIN service_requests sr ON ba.request_id = sr.id JOIN users u ON sr.user_id = u.id WHERE ba.captain_id = ? ORDER BY ba.created_at DESC");
         $stmt->execute([$captainId]);
         return $stmt->fetchAll();
     }

@@ -15,7 +15,12 @@ $requests = $srModel->getAll();
 // Filter
 $filterStatus = $_GET['status'] ?? 'formal_request_submitted';
 if ($filterStatus !== 'all') {
-    $requests = array_filter($requests, fn($r) => $r['status'] === $filterStatus);
+    // "For Review" shows both formal_request_submitted AND barangay_approved
+    if ($filterStatus === 'formal_request_submitted') {
+        $requests = array_filter($requests, fn($r) => in_array($r['status'], ['formal_request_submitted', 'barangay_approved']));
+    } else {
+        $requests = array_filter($requests, fn($r) => $r['status'] === $filterStatus);
+    }
 }
 ?>
 
@@ -75,8 +80,10 @@ if ($filterStatus !== 'all') {
                         <td class="small"><?= date('M d, Y', strtotime($req['target_date'])) ?></td>
                         <td><span class="ps-badge ps-badge-<?= $req['status'] ?>"><?= str_replace('_', ' ', $req['status']) ?></span></td>
                         <td>
-                            <?php if ($req['status'] === 'formal_request_submitted'): ?>
-                                <a href="index.php?action=refer_request&id=<?= $req['id'] ?>" class="btn btn-sm btn-ps-primary">Review</a>
+                            <?php if (in_array($req['status'], ['formal_request_submitted', 'barangay_approved'])): ?>
+                                <a href="index.php?action=refer_request&id=<?= $req['id'] ?>" class="btn btn-sm btn-ps-primary">
+                                    <i class="bi bi-eye me-1"></i>Review
+                                </a>
                             <?php else: ?>
                                 <a href="index.php?action=refer_request&id=<?= $req['id'] ?>" class="btn btn-sm btn-outline-secondary">View</a>
                             <?php endif; ?>
