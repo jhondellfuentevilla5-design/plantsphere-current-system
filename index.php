@@ -9,19 +9,19 @@ ini_set('session.cookie_samesite', 'Strict');
 
 session_start();
 
-require_once 'database/db.php';
-require_once 'controllers/AuthController.php';
-require_once 'controllers/SessionGuard.php';
-require_once 'models/User.php';
-require_once 'models/SecurityLog.php';
-require_once 'models/ServiceRequest.php';
-require_once 'models/RsbsaRegistry.php';
-require_once 'models/PlantingMaterial.php';
-require_once 'models/ValidationReport.php';
-require_once 'models/RequestSlip.php';
-require_once 'models/Notification.php';
-require_once 'models/BarangayApproval.php';
-require_once 'models/SeedRelease.php';
+require_once __DIR__ . '/database/db.php';
+require_once __DIR__ . '/controllers/AuthController.php';
+require_once __DIR__ . '/controllers/SessionGuard.php';
+require_once __DIR__ . '/models/User.php';
+require_once __DIR__ . '/models/SecurityLog.php';
+require_once __DIR__ . '/models/ServiceRequest.php';
+require_once __DIR__ . '/models/RsbsaRegistry.php';
+require_once __DIR__ . '/models/PlantingMaterial.php';
+require_once __DIR__ . '/models/ValidationReport.php';
+require_once __DIR__ . '/models/RequestSlip.php';
+require_once __DIR__ . '/models/Notification.php';
+require_once __DIR__ . '/models/BarangayApproval.php';
+require_once __DIR__ . '/models/SeedRelease.php';
 
 $auth   = new AuthController($conn);
 $secLog = new SecurityLog($conn);
