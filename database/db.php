@@ -1,22 +1,18 @@
 <?php
-// ── Database Configuration ────────────────────────────────
-
 // Auto-detect environment
 $isLocalhost = in_array($_SERVER['SERVER_NAME'] ?? '', ['localhost', '127.0.0.1', '::1'])
                || str_contains($_SERVER['HTTP_HOST'] ?? '', 'localhost');
 
 if ($isLocalhost) {
-    // ── LOCAL (XAMPP) ─────────────────────────────────────
     $host = 'localhost';
     $user = 'root';
     $pass = '';
     $db   = 'plantsphere_secure_authentication_system_db';
 } else {
-    // ── PRODUCTION (InfinityFree) ─────────────────────────
-    $host = 'sql210.infinityfree.com';
-    $user = 'if0_42187006';
-    $pass = '10062003Dell';
-    $db   = 'if0_42187006_plantsphere_secure_authentication_system_db';
+    $host = 'sql305.infinityfree.com';
+    $user = 'if0_42188908';
+    $pass = '200306dell';
+    $db   = 'if0_42188908_plantsphere';
 }
 
 try {
