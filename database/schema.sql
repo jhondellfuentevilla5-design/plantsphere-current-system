@@ -1,14 +1,21 @@
-CREATE DATABASE IF NOT EXISTS plantsphere_secure_authentication_system_db;
-USE plantsphere_secure_authentication_system_db;
+-- PlantSphere Database Schema
+-- Tables only — database must be created manually in hosting control panel
 
--- Users table with role support
+-- Users table with full security support
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     firstname VARCHAR(50) NOT NULL,
     lastname VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role ENUM('community_organizer','community_affairs_worker','agricultural_technologist','mao') NOT NULL DEFAULT 'community_organizer',
+    role ENUM('community_organizer','community_affairs_worker','agricultural_technologist','mao','barangay_captain','department_head','nursery','admin') NOT NULL DEFAULT 'community_organizer',
+    is_active TINYINT(1) DEFAULT 1,
+    is_locked TINYINT(1) DEFAULT 0,
+    failed_attempts INT DEFAULT 0,
+    locked_until TIMESTAMP NULL,
+    last_login TIMESTAMP NULL,
+    password_changed_at TIMESTAMP NULL,
+    data_classification ENUM('public','internal','confidential') DEFAULT 'internal',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
